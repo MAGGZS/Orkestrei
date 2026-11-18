@@ -1,0 +1,187 @@
+@import "tailwindcss";
+@import "@xterm/xterm/css/xterm.css";
+
+:root,
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --background: #141415;
+  --foreground: #ededed;
+  --card: #1c1c1e;
+  --card-foreground: #ededed;
+  --popover: #1c1c1e;
+  --popover-foreground: #ededed;
+  --primary: #0a84ff;
+  --primary-foreground: #ffffff;
+  --secondary: #252528;
+  --secondary-foreground: #ededed;
+  --muted: #232325;
+  --muted-foreground: #8e8e93;
+  --accent: #0a84ff;
+  --accent-foreground: #ffffff;
+  --accent-soft: rgba(10, 132, 255, 0.16);
+  --destructive: #e5484d;
+  --destructive-foreground: #ffffff;
+  --border: rgba(255, 255, 255, 0.08);
+  --border-strong: rgba(255, 255, 255, 0.12);
+  --input: rgba(255, 255, 255, 0.06);
+  --ring: rgba(10, 132, 255, 0.48);
+  --success: #4cc38a;
+  --warning: #e5a00d;
+  --canvas-bg: #161618;
+  --grid-line: rgba(255, 255, 255, 0.045);
+  --rope: rgba(255, 255, 255, 0.28);
+  --glass-bg-rgb: 28, 28, 30;
+  --glass-highlight: rgba(255, 255, 255, 0.12);
+  --glass-text: #ededed;
+  --bg-hover: rgba(255, 255, 255, 0.06);
+  --sidebar-bg: #18181a;
+  --sidebar-fg: #ededed;
+  --sidebar-hover: rgba(255, 255, 255, 0.05);
+  --sidebar-active: rgba(255, 255, 255, 0.09);
+  --sidebar-border: rgba(255, 255, 255, 0.07);
+  --shadow-node: 0 3px 18px rgba(0, 0, 0, 0.42), 0 0 0 0.5px rgba(255, 255, 255, 0.10);
+  --shadow-node-selected: 0 8px 32px rgba(0, 0, 0, 0.58), 0 0 0 1px var(--accent);
+  --git-added: #81b88b;
+  --git-modified: #e2c08d;
+  --git-deleted: #fd7b64;
+  --git-untracked: #73c991;
+}
+
+:root[data-theme="light"] {
+  color-scheme: light;
+  --background: #f5f5f7;
+  --foreground: #1d1d1f;
+  --card: #ffffff;
+  --card-foreground: #1d1d1f;
+  --popover: #ffffff;
+  --popover-foreground: #1d1d1f;
+  --primary: #007aff;
+  --primary-foreground: #ffffff;
+  --secondary: #e5e5ea;
+  --secondary-foreground: #1d1d1f;
+  --muted: #f2f2f7;
+  --muted-foreground: rgba(60, 60, 67, 0.6);
+  --accent: #007aff;
+  --accent-foreground: #ffffff;
+  --accent-soft: rgba(0, 122, 255, 0.16);
+  --destructive: #ff3b30;
+  --destructive-foreground: #ffffff;
+  --border: rgba(0, 0, 0, 0.12);
+  --border-strong: rgba(0, 0, 0, 0.18);
+  --input: rgba(118, 118, 128, 0.14);
+  --ring: rgba(0, 122, 255, 0.45);
+  --success: #28cd41;
+  --warning: #ff9500;
+  --canvas-bg: #f8f8fa;
+  --grid-line: rgba(0, 0, 0, 0.08);
+  --rope: rgba(0, 0, 0, 0.32);
+  --glass-bg-rgb: 255, 255, 255;
+  --glass-highlight: rgba(0, 0, 0, 0.08);
+  --glass-text: #1d1d1f;
+  --bg-hover: rgba(0, 0, 0, 0.05);
+  --sidebar-bg: #ececef;
+  --sidebar-fg: #1d1d1f;
+  --sidebar-hover: rgba(0, 0, 0, 0.05);
+  --sidebar-active: rgba(0, 0, 0, 0.09);
+  --sidebar-border: rgba(0, 0, 0, 0.1);
+  --shadow-node: 0 3px 16px rgba(0, 0, 0, 0.09), 0 0 0 0.5px rgba(0, 0, 0, 0.12);
+  --shadow-node-selected: 0 8px 30px rgba(0, 0, 0, 0.16), 0 0 0 1.5px var(--accent);
+  --git-added: #56790c;
+  --git-modified: #895503;
+  --git-deleted: #ad0707;
+  --git-untracked: #007100;
+}
+
+html,
+body,
+#root {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Inter, sans-serif;
+  user-select: none;
+}
+
+.glass {
+  background: rgba(var(--glass-bg-rgb), 0.72);
+  backdrop-filter: blur(18px) saturate(140%);
+  color: var(--glass-text);
+  border: none;
+  box-shadow:
+    inset 0 0 0 0.5px var(--glass-highlight),
+    0 4px 16px rgba(0, 0, 0, 0.22);
+}
+
+.glass-strong {
+  background: rgba(var(--glass-bg-rgb), 0.88);
+  backdrop-filter: blur(22px) saturate(160%);
+  color: var(--glass-text);
+  border: none;
+  box-shadow:
+    inset 0 0 0 0.5px var(--glass-highlight),
+    0 10px 28px rgba(0, 0, 0, 0.28);
+}
+
+.titlebar-drag {
+  -webkit-app-region: drag;
+}
+
+.titlebar-no-drag,
+button,
+input,
+textarea,
+select,
+[role="button"] {
+  -webkit-app-region: no-drag;
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border-strong);
+  border-radius: 999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--muted-foreground);
+}
+
+.xterm {
+  height: 100%;
+  width: 100%;
+  font-variant-emoji: text;
+  font-feature-settings: "liga" 0, "clig" 0, "calt" 0;
+  font-variant-ligatures: none;
+}
+
+.xterm * {
+  font-variant-emoji: text;
+}
+
+.xterm-viewport {
+  background-color: transparent !important;
+  overflow-x: hidden !important;
+}
+
+@keyframes ropePulseFlow {
+  0% {
+    stroke-dashoffset: 48;
+  }
+  100% {
+    stroke-dashoffset: 0;
+  }
+}
+
+.rope-active-flow {
+  stroke-dasharray: 10 14;
+  animation: ropePulseFlow 0.7s linear infinite;
+}
