@@ -218,7 +218,7 @@ export const ContextMenus: React.FC = () => {
       };
     }
 
-    await window.maestri.node.create(workspace.id, node);
+    await window.orkestrei.node.create(workspace.id, node);
     setCanvasMenu(null);
   };
 
@@ -354,7 +354,7 @@ export const ContextMenus: React.FC = () => {
               onClick={() => {
                 const t = (targetNode.content as { kind: 'terminal'; terminal: { id: string; isManager: boolean } }).terminal;
                 setNodeMenu(null);
-                void window.maestri.terminal.updateData(workspace.id, t.id, {
+                void window.orkestrei.terminal.updateData(workspace.id, t.id, {
                   isManager: !t.isManager,
                 });
               }}
@@ -368,7 +368,7 @@ export const ContextMenus: React.FC = () => {
               onClick={() => {
                 const t = (targetNode.content as { kind: 'terminal'; terminal: { id: string; inChatMode: boolean } }).terminal;
                 setNodeMenu(null);
-                void window.maestri.terminal.updateData(workspace.id, t.id, {
+                void window.orkestrei.terminal.updateData(workspace.id, t.id, {
                   inChatMode: !t.inChatMode,
                 });
               }}
@@ -382,7 +382,7 @@ export const ContextMenus: React.FC = () => {
               onClick={() => {
                 const t = (targetNode.content as { kind: 'terminal'; terminal: { id: string } }).terminal;
                 setNodeMenu(null);
-                void window.maestri.terminal.restart(workspace.id, t.id);
+                void window.orkestrei.terminal.restart(workspace.id, t.id);
               }}
               className="flex w-full items-center gap-2 rounded-md px-2.5 py-1.5 text-left transition-colors hover:bg-[var(--bg-hover)]"
             >
@@ -397,7 +397,7 @@ export const ContextMenus: React.FC = () => {
           type="button"
           onClick={() => {
             setNodeMenu(null);
-            void window.maestri.node.duplicate(workspace.id, targetNode.id);
+            void window.orkestrei.node.duplicate(workspace.id, targetNode.id);
           }}
           className="flex w-full items-center gap-2 rounded-md px-2.5 py-1.5 text-left transition-colors hover:bg-[var(--bg-hover)]"
         >
@@ -409,7 +409,7 @@ export const ContextMenus: React.FC = () => {
           type="button"
           onClick={() => {
             setNodeMenu(null);
-            void window.maestri.node.setRedacted(
+            void window.orkestrei.node.setRedacted(
               workspace.id,
               targetNode.id,
               !targetNode.isRedacted
@@ -435,7 +435,7 @@ export const ContextMenus: React.FC = () => {
             type="button"
             onClick={() => {
               setNodeMenu(null);
-              void window.maestri.noteStack.fileNote(workspace.id, targetNode.id, 'Fichário');
+              void window.orkestrei.noteStack.fileNote(workspace.id, targetNode.id, 'Fichário');
             }}
             className="flex w-full items-center gap-2 rounded-md px-2.5 py-1.5 text-left transition-colors hover:bg-[var(--bg-hover)]"
           >
@@ -456,7 +456,7 @@ export const ContextMenus: React.FC = () => {
                 type="button"
                 onClick={() => {
                   setNodeMenu(null);
-                  void window.maestri.node.moveToFloor(workspace.id, targetNode.id, tf.id);
+                  void window.orkestrei.node.moveToFloor(workspace.id, targetNode.id, tf.id);
                 }}
                 className="flex w-full items-center gap-2 rounded-md px-2.5 py-1 text-left transition-colors hover:bg-[var(--bg-hover)]"
               >
@@ -473,7 +473,7 @@ export const ContextMenus: React.FC = () => {
           type="button"
           onClick={() => {
             setNodeMenu(null);
-            void window.maestri.connection.removeAllFor(workspace.id, targetNode.id);
+            void window.orkestrei.connection.removeAllFor(workspace.id, targetNode.id);
           }}
           className="flex w-full items-center gap-2 rounded-md px-2.5 py-1.5 text-left transition-colors hover:bg-[var(--bg-hover)]"
         >
@@ -485,7 +485,7 @@ export const ContextMenus: React.FC = () => {
           type="button"
           onClick={() => {
             setNodeMenu(null);
-            void window.maestri.node.deleteMany(workspace.id, [targetNode.id]);
+            void window.orkestrei.node.deleteMany(workspace.id, [targetNode.id]);
           }}
           className="flex w-full items-center gap-2 rounded-md px-2.5 py-1.5 text-left text-[var(--destructive)] transition-colors hover:bg-[var(--destructive)]/15"
         >

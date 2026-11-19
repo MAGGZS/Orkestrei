@@ -159,7 +159,7 @@ export const CommandPalette: React.FC = () => {
         category: 'Floor',
         action: () => {
           setLiftedNodeId(null);
-          void window.maestri.floor.switch(workspace.id, null);
+          void window.orkestrei.floor.switch(workspace.id, null);
         },
       });
       for (const f of workspace.floors) {
@@ -171,7 +171,7 @@ export const CommandPalette: React.FC = () => {
           category: 'Floor',
           action: () => {
             setLiftedNodeId(null);
-            void window.maestri.floor.switch(workspace.id, f.id);
+            void window.orkestrei.floor.switch(workspace.id, f.id);
           },
         });
       }
@@ -203,7 +203,7 @@ export const CommandPalette: React.FC = () => {
             action: () => {
               if (parentStack && parentStack.content.kind === 'noteStack') {
                 if (parentStack.content.noteStack.frontNoteId !== n.id) {
-                  void window.maestri.node.patch(workspace.id, parentStack.id, {
+                  void window.orkestrei.node.patch(workspace.id, parentStack.id, {
                     content: {
                       kind: 'noteStack',
                       noteStack: { ...parentStack.content.noteStack, frontNoteId: n.id },
@@ -242,7 +242,7 @@ export const CommandPalette: React.FC = () => {
         category: 'Workspace',
         action: () => {
           setLiftedNodeId(null);
-          void window.maestri.workspace.switch(w.id);
+          void window.orkestrei.workspace.switch(w.id);
         },
       });
     }

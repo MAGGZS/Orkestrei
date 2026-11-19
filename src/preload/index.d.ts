@@ -32,7 +32,7 @@ import type {
   Workspace,
 } from '../shared/types';
 
-export interface MaestriBridge {
+export interface OrkestreiBridge {
   app: {
     info: () => Promise<{
       name: string;
@@ -391,6 +391,6 @@ export interface MaestriBridge {
 
 declare global {
   interface Window {
-    maestri: MaestriBridge;
+    orkestrei: OrkestreiBridge;
   }
 }

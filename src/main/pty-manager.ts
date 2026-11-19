@@ -276,9 +276,9 @@ export class PTYManager {
   ): Promise<string | null> {
     if (!role) return null;
     try {
-      const roleDir = path.join(workspaceDir, '.maestri', 'roles', role.id);
+      const roleDir = path.join(workspaceDir, '.orkestrei', 'roles', role.id);
       await ensureDir(roleDir);
-      const roleDoc = `# Role: ${role.name}\n\n<your_assigned_role>\n${role.prompt}\n</your_assigned_role>\n\nYou are running inside Orkestrei (Maestri-compatible spatial workspace).\nUse \`maestri list\` to discover connected agents, notes, and portals, and \`maestri ask "Name" "message"\` to collaborate.\n`;
+      const roleDoc = `# Role: ${role.name}\n\n<your_assigned_role>\n${role.prompt}\n</your_assigned_role>\n\nYou are running inside Orkestrei (spatial workspace).\nUse \`orkestrei list\` to discover connected agents, notes, and portals, and \`orkestrei ask "Name" "message"\` to collaborate.\n`;
       await fsp.writeFile(path.join(roleDir, 'ROLE.md'), roleDoc, 'utf8');
       await fsp.writeFile(path.join(roleDir, 'CLAUDE.md'), roleDoc, 'utf8');
       await fsp.writeFile(path.join(roleDir, 'AGENTS.md'), roleDoc, 'utf8');
@@ -441,8 +441,8 @@ export class PTYManager {
     const shell = this.resolveShellExecutable();
     const cliBin =
       process.platform === 'win32'
-        ? path.join(this.binDir, 'maestri.cmd')
-        : path.join(this.binDir, 'maestri');
+        ? path.join(this.binDir, 'orkestrei.cmd')
+        : path.join(this.binDir, 'orkestrei');
 
     const pathKey = Object.keys(process.env).find((k) => k.toLowerCase() === 'path') ?? 'PATH';
     const currentPath = process.env[pathKey] ?? '';
@@ -463,24 +463,23 @@ export class PTYManager {
     env[pathKey] = nextPath;
     env.TERM = 'xterm-256color';
     env.COLORTERM = 'truecolor';
-    env.TERM_PROGRAM = 'Maestri';
-    env.MAESTRI_TERMINAL_ID = terminal.id;
-    env.MAESTRI_TERMINAL_NAME = terminal.name;
-    env.MAESTRI_WORKSPACE_ID = workspaceId;
-    env.MAESTRI_WORKSPACE_NAME = workspaceName;
-    env.MAESTRI_WORKSPACE_DIR = baseCwd;
-    env.MAESTRI_PIPE = this.pipeUrl;
-    env.MAESTRI_CLI = cliBin;
+    env.TERM_PROGRAM = 'Orkestrei';
+    env.ORKESTREI_TERMINAL_ID = terminal.id;
+    env.ORKESTREI_TERMINAL_NAME = terminal.name;
+    env.ORKESTREI_WORKSPACE_ID = workspaceId;
+    env.ORKESTREI_WORKSPACE_NAME = workspaceName;
+    env.ORKESTREI_WORKSPACE_DIR = baseCwd;
     env.ORKESTREI_PIPE = this.pipeUrl;
+    env.ORKESTREI_CLI = cliBin;
     if (this.authToken) {
-      env.MAESTRI_TOKEN = this.authToken;
+      env.ORKESTREI_TOKEN = this.authToken;
     }
     if (role) {
-      env.MAESTRI_ROLE_NAME = role.name;
-      env.MAESTRI_ROLE_PROMPT = role.prompt;
+      env.ORKESTREI_ROLE_NAME = role.name;
+      env.ORKESTREI_ROLE_PROMPT = role.prompt;
       if (roleDir) {
-        env.MAESTRI_ROLE_DIR = roleDir;
-        env.MAESTRI_ROLE_FILE = path.join(roleDir, 'ROLE.md');
+        env.ORKESTREI_ROLE_DIR = roleDir;
+        env.ORKESTREI_ROLE_FILE = path.join(roleDir, 'ROLE.md');
         const isOpenCode =
           terminal.agentType === 'opencode' ||
           Boolean(terminal.command && /^opencode(\.cmd|\.exe)?(\s|$)/i.test(terminal.command.trim()));

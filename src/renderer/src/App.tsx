@@ -85,19 +85,19 @@ export const App: React.FC = () => {
         agentUsage,
       ] =
         await Promise.all([
-          window.maestri.workspace.list(),
-          window.maestri.workspace.getActiveId(),
-          window.maestri.appState.get(),
-          window.maestri.preferences.get(),
-          window.maestri.sidebarLayout.get(),
-          window.maestri.roles.list(),
-          window.maestri.partitura.list(),
-          window.maestri.savedPrompts.list(),
-          window.maestri.routines.list(),
-          window.maestri.routines.history(),
-          window.maestri.terminal.activityState(),
-          window.maestri.tokens.get(),
-          window.maestri.agentUsage.get().catch(() => EMPTY_AGENT_USAGE_SNAPSHOT),
+          window.orkestrei.workspace.list(),
+          window.orkestrei.workspace.getActiveId(),
+          window.orkestrei.appState.get(),
+          window.orkestrei.preferences.get(),
+          window.orkestrei.sidebarLayout.get(),
+          window.orkestrei.roles.list(),
+          window.orkestrei.partitura.list(),
+          window.orkestrei.savedPrompts.list(),
+          window.orkestrei.routines.list(),
+          window.orkestrei.routines.history(),
+          window.orkestrei.terminal.activityState(),
+          window.orkestrei.tokens.get(),
+          window.orkestrei.agentUsage.get().catch(() => EMPTY_AGENT_USAGE_SNAPSHOT),
         ]);
 
       setWorkspaces(wsList);
@@ -119,7 +119,7 @@ export const App: React.FC = () => {
     void loadInitial();
 
     const unsubs = [
-      window.maestri.workspace.onChanged((updated) => {
+      window.orkestrei.workspace.onChanged((updated) => {
         setWorkspaces((prev) => {
           const idx = prev.findIndex((w) => w.id === updated.id);
           if (idx === -1) return [...prev, updated];
@@ -128,45 +128,45 @@ export const App: React.FC = () => {
           return next;
         });
       }),
-      window.maestri.workspace.onDeleted((deletedId) => {
+      window.orkestrei.workspace.onDeleted((deletedId) => {
         setWorkspaces((prev) => prev.filter((w) => w.id !== deletedId));
       }),
-      window.maestri.workspace.onActiveChanged((nextId) => {
+      window.orkestrei.workspace.onActiveChanged((nextId) => {
         setActiveId(nextId);
       }),
-      window.maestri.preferences.onChanged(setPrefs),
-      window.maestri.sidebarLayout.onChanged(setSidebarLayout),
-      window.maestri.roles.onChanged(() => {
-        void window.maestri.roles.list().then(setRoles);
+      window.orkestrei.preferences.onChanged(setPrefs),
+      window.orkestrei.sidebarLayout.onChanged(setSidebarLayout),
+      window.orkestrei.roles.onChanged(() => {
+        void window.orkestrei.roles.list().then(setRoles);
       }),
-      window.maestri.partitura.onChanged(() => {
-        void window.maestri.partitura.list().then(setPartituras);
+      window.orkestrei.partitura.onChanged(() => {
+        void window.orkestrei.partitura.list().then(setPartituras);
       }),
-      window.maestri.savedPrompts.onChanged(() => {
-        void window.maestri.savedPrompts.list().then(setSavedPrompts);
+      window.orkestrei.savedPrompts.onChanged(() => {
+        void window.orkestrei.savedPrompts.list().then(setSavedPrompts);
       }),
-      window.maestri.routines.onChanged(() => {
-        void window.maestri.routines.list().then(setRoutines);
+      window.orkestrei.routines.onChanged(() => {
+        void window.orkestrei.routines.list().then(setRoutines);
       }),
-      window.maestri.routines.onHistoryChanged(() => {
-        void window.maestri.routines.history().then(setRoutineHistory);
+      window.orkestrei.routines.onHistoryChanged(() => {
+        void window.orkestrei.routines.history().then(setRoutineHistory);
       }),
-      window.maestri.terminal.onActivity(setActivity),
-      window.maestri.tokens.onChanged(setTokenUsage),
-      window.maestri.agentUsage.onChanged(setAgentUsage),
-      window.maestri.band.onAsksInFlight((asks) => {
+      window.orkestrei.terminal.onActivity(setActivity),
+      window.orkestrei.tokens.onChanged(setTokenUsage),
+      window.orkestrei.agentUsage.onChanged(setAgentUsage),
+      window.orkestrei.band.onAsksInFlight((asks) => {
         setAsksInFlight(asks as Record<string, AskInFlight>);
       }),
-      window.maestri.connection.onTransferActive((ev: TransferActiveEvent) => {
+      window.orkestrei.connection.onTransferActive((ev: TransferActiveEvent) => {
         setRecentTransfers((prev) => [...prev.slice(-15), ev]);
         setTimeout(() => {
           setRecentTransfers((prev) => prev.filter((x) => Date.now() - x.timestamp < 2400));
         }, 2500);
       }),
-      window.maestri.app.onNotification((n) => {
+      window.orkestrei.app.onNotification((n) => {
         toast(n.title, { description: n.body });
       }),
-      window.maestri.terminal.onFocusRequest((ev) => {
+      window.orkestrei.terminal.onFocusRequest((ev) => {
         const allWorkspaces = store.get(workspacesAtom);
         let targetWorkspaceId = ev.workspaceId;
         let targetFloorId = ev.floorId;
@@ -211,16 +211,16 @@ export const App: React.FC = () => {
         void (async () => {
           const curWs = store.get(activeWorkspaceAtom);
           if (!curWs || !sameId(curWs.id, targetWorkspaceId)) {
-            const switched = await window.maestri.workspace.switch(targetWorkspaceId);
+            const switched = await window.orkestrei.workspace.switch(targetWorkspaceId);
             if (!switched) {
               setPendingTerminalFocus(null);
               return;
             }
             if (!sameId(switched.activeFloorId, targetFloorId)) {
-              await window.maestri.floor.switch(switched.id, targetFloorId);
+              await window.orkestrei.floor.switch(switched.id, targetFloorId);
             }
           } else if (!sameId(curWs.activeFloorId, targetFloorId)) {
-            await window.maestri.floor.switch(curWs.id, targetFloorId, {
+            await window.orkestrei.floor.switch(curWs.id, targetFloorId, {
               origin: store.get(canvasOffsetAtom),
               zoom: store.get(zoomAtom),
             });

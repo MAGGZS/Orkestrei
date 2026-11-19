@@ -150,7 +150,7 @@ export function focusTerminalTarget(target: TerminalTarget, ctx: FocusTargetCont
     target.bandNode.content.kind === 'band' &&
     target.bandNode.content.band.selectedMemberNodeId !== target.terminalNode.id
   ) {
-    void window.maestri.band.select(ctx.workspaceId, target.bandNode.id, target.terminalNode.id);
+    void window.orkestrei.band.select(ctx.workspaceId, target.bandNode.id, target.terminalNode.id);
   }
   const frame = getNodeLiveFrame(target.focusNode, ctx.liveFrames);
   ctx.setOffset(computeCenteredOffset(frame, ctx.viewportSize, ctx.zoom));

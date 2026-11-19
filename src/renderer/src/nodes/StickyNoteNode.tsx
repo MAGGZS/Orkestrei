@@ -32,7 +32,7 @@ export const StickyNoteNode: React.FC<{ node: CanvasNode }> = ({ node }) => {
     const pending = pendingWriteRef.current;
     if (pending) {
       pendingWriteRef.current = null;
-      void window.maestri.note.write(pending.workspaceId, pending.nodeId, pending.text);
+      void window.orkestrei.note.write(pending.workspaceId, pending.nodeId, pending.text);
     }
   }, []);
 
@@ -75,7 +75,7 @@ export const StickyNoteNode: React.FC<{ node: CanvasNode }> = ({ node }) => {
       const pending = pendingWriteRef.current;
       if (pending) {
         pendingWriteRef.current = null;
-        void window.maestri.note.write(pending.workspaceId, pending.nodeId, pending.text);
+        void window.orkestrei.note.write(pending.workspaceId, pending.nodeId, pending.text);
       }
     }, 300);
   };
@@ -84,7 +84,7 @@ export const StickyNoteNode: React.FC<{ node: CanvasNode }> = ({ node }) => {
     if (note.isContentLocked) return;
     setText(val);
     cancelPendingSave();
-    void window.maestri.note.write(workspace.id, node.id, val);
+    void window.orkestrei.note.write(workspace.id, node.id, val);
   };
 
   const hasMarkdownH1 = text.trimStart().startsWith('# ');
@@ -142,7 +142,7 @@ export const StickyNoteNode: React.FC<{ node: CanvasNode }> = ({ node }) => {
                         type="button"
                         onClick={() => {
                           setShowColors(false);
-                          void window.maestri.note.setColor(workspace.id, node.id, c);
+                          void window.orkestrei.note.setColor(workspace.id, node.id, c);
                         }}
                         className={`size-5 rounded-full border border-black/20 transition-opacity hover:opacity-85 ${
                           note.color === c ? 'ring-2 ring-[var(--accent)]' : ''
@@ -158,7 +158,7 @@ export const StickyNoteNode: React.FC<{ node: CanvasNode }> = ({ node }) => {
                 type="button"
                 onClick={() => {
                   flushPendingSave();
-                  void window.maestri.noteStack.fileNote(workspace.id, node.id, 'Fichário');
+                  void window.orkestrei.noteStack.fileNote(workspace.id, node.id, 'Fichário');
                 }}
                 className="rounded p-1 opacity-65 hover:bg-black/10 hover:opacity-100"
                 title="File into Fichário"
@@ -168,7 +168,7 @@ export const StickyNoteNode: React.FC<{ node: CanvasNode }> = ({ node }) => {
               <button
                 type="button"
                 onClick={() =>
-                  void window.maestri.node.patch(workspace.id, node.id, {
+                  void window.orkestrei.node.patch(workspace.id, node.id, {
                     content: {
                       kind: 'stickyNote',
                       stickyNote: { ...note, isContentLocked: !note.isContentLocked },
@@ -184,7 +184,7 @@ export const StickyNoteNode: React.FC<{ node: CanvasNode }> = ({ node }) => {
                 type="button"
                 onClick={() => {
                   cancelPendingSave();
-                  void window.maestri.node.deleteMany(workspace.id, [node.id]);
+                  void window.orkestrei.node.deleteMany(workspace.id, [node.id]);
                 }}
                 className="rounded p-1 opacity-65 hover:bg-black/10 hover:text-red-600 hover:opacity-100"
                 title="Delete note"

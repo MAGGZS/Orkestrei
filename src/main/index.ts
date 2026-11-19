@@ -62,6 +62,7 @@ async function bootstrap(): Promise<void> {
   const binDir = resolveBinDir();
   const store = new WorkspaceStore();
   await store.init();
+  console.log('[startup] Workspace store initialized (startup migration complete).');
 
   const ptyManager = new PTYManager(binDir);
   const tokenUsageService = new TokenUsageService(ptyManager);
@@ -80,7 +81,7 @@ async function bootstrap(): Promise<void> {
     } catch {
       // ignore notification failure
     }
-    broadcast('maestri:app:notification', { title, body });
+    broadcast('orkestrei:app:notification', { title, body });
   };
 
   const ensureTerminalSpawned = async (
@@ -114,9 +115,9 @@ async function bootstrap(): Promise<void> {
       const ws = store.getWorkspace(wid);
       const t = ws && tid ? store.findTerminal(ws, tid) : null;
       return {
-        MAESTRI_WORKSPACE_NAME: ws?.name ?? '',
-        MAESTRI_WORKSPACE_DIR: ws?.workingDirectory ?? '',
-        MAESTRI_TERMINAL_NAME: t?.terminal.name ?? '',
+        ORKESTREI_WORKSPACE_NAME: ws?.name ?? '',
+        ORKESTREI_WORKSPACE_DIR: ws?.workingDirectory ?? '',
+        ORKESTREI_TERMINAL_NAME: t?.terminal.name ?? '',
       };
     },
     notifyUser,
@@ -156,9 +157,9 @@ async function bootstrap(): Promise<void> {
           timeout: 60_000,
           env: {
             ...process.env,
-            MAESTRI_WORKSPACE_NAME: ws.name,
-            MAESTRI_WORKSPACE_DIR: cwd,
-            MAESTRI_FLOOR_NAME: floor?.name ?? 'Ground',
+            ORKESTREI_WORKSPACE_NAME: ws.name,
+            ORKESTREI_WORKSPACE_DIR: cwd,
+            ORKESTREI_FLOOR_NAME: floor?.name ?? 'Ground',
           },
         });
         results.push({
@@ -219,22 +220,22 @@ async function bootstrap(): Promise<void> {
   };
 
   // Wire store/pty/orchestrator events to renderer
-  store.onChanged((ws) => broadcast('maestri:workspace:onChanged', ws));
-  store.onDeleted((id) => broadcast('maestri:workspace:onDeleted', id));
-  store.onActiveChanged((id) => broadcast('maestri:workspace:onActiveChanged', id));
-  store.onPreferencesChanged((prefs) => broadcast('maestri:preferences:onChanged', prefs));
-  store.onSidebarLayoutChanged((layout) => broadcast('maestri:sidebarLayout:onChanged', layout));
-  store.onPartiturasChanged(() => broadcast('maestri:partitura:changed'));
-  store.onRolesChanged(() => broadcast('maestri:roles:changed'));
-  store.onSavedPromptsChanged(() => broadcast('maestri:savedPrompts:changed'));
+  store.onChanged((ws) => broadcast('orkestrei:workspace:onChanged', ws));
+  store.onDeleted((id) => broadcast('orkestrei:workspace:onDeleted', id));
+  store.onActiveChanged((id) => broadcast('orkestrei:workspace:onActiveChanged', id));
+  store.onPreferencesChanged((prefs) => broadcast('orkestrei:preferences:onChanged', prefs));
+  store.onSidebarLayoutChanged((layout) => broadcast('orkestrei:sidebarLayout:onChanged', layout));
+  store.onPartiturasChanged(() => broadcast('orkestrei:partitura:changed'));
+  store.onRolesChanged(() => broadcast('orkestrei:roles:changed'));
+  store.onSavedPromptsChanged(() => broadcast('orkestrei:savedPrompts:changed'));
 
-  ptyManager.onData((ev) => broadcast('maestri:terminal:onData', ev));
-  ptyManager.onExit((ev) => broadcast('maestri:terminal:onExit', ev));
+  ptyManager.onData((ev) => broadcast('orkestrei:terminal:onData', ev));
+  ptyManager.onExit((ev) => broadcast('orkestrei:terminal:onExit', ev));
   ptyManager.onStatus((ev) => {
-    broadcast('maestri:terminal:onStatus', ev);
+    broadcast('orkestrei:terminal:onStatus', ev);
     agentUsageService.syncTargets();
   });
-  ptyManager.onActivity((state) => broadcast('maestri:terminal:activity', state));
+  ptyManager.onActivity((state) => broadcast('orkestrei:terminal:activity', state));
 
   const activeAttentionNotifications = new Set<Notification>();
   ptyManager.onAttentionTransition((ev) => {
@@ -279,7 +280,7 @@ async function bootstrap(): Promise<void> {
           mainWindow.show();
           mainWindow.focus();
         }
-        broadcast('maestri:terminal:focusRequest', {
+        broadcast('orkestrei:terminal:focusRequest', {
           terminalId: ev.terminalId,
           nodeId,
           workspaceId,
@@ -294,23 +295,23 @@ async function bootstrap(): Promise<void> {
       // ignore notification failure
     }
   });
-  tokenUsageService.onChanged((map) => broadcast('maestri:tokens:onChanged', map));
+  tokenUsageService.onChanged((map) => broadcast('orkestrei:tokens:onChanged', map));
   tokenUsageService.start();
 
-  agentUsageService.onChanged((snapshot) => broadcast('maestri:agentUsage:changed', snapshot));
+  agentUsageService.onChanged((snapshot) => broadcast('orkestrei:agentUsage:changed', snapshot));
   agentUsageService.start();
 
-  orchestrator.onAsksInFlight((asks) => broadcast('maestri:band:asksInFlight', asks));
-  orchestrator.onTransferActive((ev) => broadcast('maestri:connection:transferActive', ev));
+  orchestrator.onAsksInFlight((asks) => broadcast('orkestrei:band:asksInFlight', asks));
+  orchestrator.onTransferActive((ev) => broadcast('orkestrei:connection:transferActive', ev));
 
-  fileTreeService.onDidChange((nodeId) => broadcast('maestri:fileTree:onDidChange', nodeId));
-  portalBridge.onWakeRequested((portalId) => broadcast('maestri:portal:wake', portalId));
-  routineScheduler.onChanged(() => broadcast('maestri:routine:onChanged'));
-  routineScheduler.onHistoryChanged(() => broadcast('maestri:routine:onHistoryChanged'));
-  chatStore.onEvent((ev) => broadcast('maestri:chat:onConversationEvent', ev));
+  fileTreeService.onDidChange((nodeId) => broadcast('orkestrei:fileTree:onDidChange', nodeId));
+  portalBridge.onWakeRequested((portalId) => broadcast('orkestrei:portal:wake', portalId));
+  routineScheduler.onChanged(() => broadcast('orkestrei:routine:onChanged'));
+  routineScheduler.onHistoryChanged(() => broadcast('orkestrei:routine:onHistoryChanged'));
+  chatStore.onEvent((ev) => broadcast('orkestrei:chat:onConversationEvent', ev));
 
   // Register IPC Handlers
-  ipcMain.handle('maestri:app:info', () => ({
+  ipcMain.handle('orkestrei:app:info', () => ({
     name: 'Orkestrei',
     version: app.getVersion(),
     platform: process.platform,
@@ -320,14 +321,14 @@ async function bootstrap(): Promise<void> {
     homeDir: os.homedir(),
   }));
 
-  ipcMain.handle('maestri:app:pickDirectory', async () => {
+  ipcMain.handle('orkestrei:app:pickDirectory', async () => {
     const res = await dialog.showOpenDialog({
       properties: ['openDirectory', 'createDirectory'],
     });
     return res.canceled ? null : (res.filePaths[0] ?? null);
   });
 
-  ipcMain.handle('maestri:app:openExternal', (_e, url: string) => {
+  ipcMain.handle('orkestrei:app:openExternal', (_e, url: string) => {
     let parsed: URL;
     try {
       parsed = new URL(String(url ?? '').trim());
@@ -339,43 +340,43 @@ async function bootstrap(): Promise<void> {
     }
     return shell.openExternal(parsed.toString());
   });
-  ipcMain.handle('maestri:app:openPath', (_e, p: string) => shell.openPath(p));
+  ipcMain.handle('orkestrei:app:openPath', (_e, p: string) => shell.openPath(p));
 
-  ipcMain.handle('maestri:appState:get', () => store.getAppState());
-  ipcMain.handle('maestri:appState:update', (_e, patch) => store.updateAppState(patch));
+  ipcMain.handle('orkestrei:appState:get', () => store.getAppState());
+  ipcMain.handle('orkestrei:appState:update', (_e, patch) => store.updateAppState(patch));
 
-  ipcMain.handle('maestri:preferences:get', () => store.getPreferences());
-  ipcMain.handle('maestri:preferences:set', (_e, patch: Partial<Preferences>) =>
+  ipcMain.handle('orkestrei:preferences:get', () => store.getPreferences());
+  ipcMain.handle('orkestrei:preferences:set', (_e, patch: Partial<Preferences>) =>
     store.setPreferences(patch)
   );
 
-  ipcMain.handle('maestri:sidebarLayout:get', () => store.getSidebarLayout());
-  ipcMain.handle('maestri:sidebarLayout:set', (_e, layout: SidebarLayout) =>
+  ipcMain.handle('orkestrei:sidebarLayout:get', () => store.getSidebarLayout());
+  ipcMain.handle('orkestrei:sidebarLayout:set', (_e, layout: SidebarLayout) =>
     store.setSidebarLayout(layout)
   );
 
   // Window Controls
-  ipcMain.handle('maestri:windowControls:state', () => ({
+  ipcMain.handle('orkestrei:windowControls:state', () => ({
     maximized: mainWindow?.isMaximized() ?? false,
     minimized: mainWindow?.isMinimized() ?? false,
   }));
-  ipcMain.handle('maestri:windowControls:minimize', () => mainWindow?.minimize());
-  ipcMain.handle('maestri:windowControls:toggleMaximize', () => {
+  ipcMain.handle('orkestrei:windowControls:minimize', () => mainWindow?.minimize());
+  ipcMain.handle('orkestrei:windowControls:toggleMaximize', () => {
     if (!mainWindow) return;
     if (mainWindow.isMaximized()) mainWindow.unmaximize();
     else mainWindow.maximize();
   });
-  ipcMain.handle('maestri:windowControls:close', () => mainWindow?.close());
+  ipcMain.handle('orkestrei:windowControls:close', () => mainWindow?.close());
 
   // Workspaces
-  ipcMain.handle('maestri:workspace:list', () => store.listWorkspaces());
-  ipcMain.handle('maestri:workspace:getActiveId', () => store.getActiveWorkspaceId());
-  ipcMain.handle('maestri:workspace:switch', (_e, id: string) => store.switchWorkspace(id));
-  ipcMain.handle('maestri:workspace:create', (_e, input) => store.createWorkspace(input));
-  ipcMain.handle('maestri:workspace:patch', (_e, id: string, patch) =>
+  ipcMain.handle('orkestrei:workspace:list', () => store.listWorkspaces());
+  ipcMain.handle('orkestrei:workspace:getActiveId', () => store.getActiveWorkspaceId());
+  ipcMain.handle('orkestrei:workspace:switch', (_e, id: string) => store.switchWorkspace(id));
+  ipcMain.handle('orkestrei:workspace:create', (_e, input) => store.createWorkspace(input));
+  ipcMain.handle('orkestrei:workspace:patch', (_e, id: string, patch) =>
     store.patchWorkspace(id, patch)
   );
-  ipcMain.handle('maestri:workspace:delete', async (_e, id: string) => {
+  ipcMain.handle('orkestrei:workspace:delete', async (_e, id: string) => {
     const ws = store.getWorkspace(id);
     if (ws) {
       for (const n of store.allNodes(ws)) {
@@ -385,13 +386,13 @@ async function bootstrap(): Promise<void> {
     }
     await store.deleteWorkspace(id);
   });
-  ipcMain.handle('maestri:workspace:undo', (_e, id: string) => store.undo(id));
-  ipcMain.handle('maestri:workspace:redo', (_e, id: string) => store.redo(id));
-  ipcMain.handle('maestri:workspace:beginUndoGroup', () => store.beginUndoGroup());
-  ipcMain.handle('maestri:workspace:endUndoGroup', () => store.endUndoGroup());
+  ipcMain.handle('orkestrei:workspace:undo', (_e, id: string) => store.undo(id));
+  ipcMain.handle('orkestrei:workspace:redo', (_e, id: string) => store.redo(id));
+  ipcMain.handle('orkestrei:workspace:beginUndoGroup', () => store.beginUndoGroup());
+  ipcMain.handle('orkestrei:workspace:endUndoGroup', () => store.endUndoGroup());
 
   // Floors
-  ipcMain.handle('maestri:floor:create', async (_e, workspaceId: string, input) => {
+  ipcMain.handle('orkestrei:floor:create', async (_e, workspaceId: string, input) => {
     const res = await store.createFloor(workspaceId, input);
     if (res.ok) {
       const ws = store.getWorkspace(workspaceId);
@@ -401,31 +402,31 @@ async function bootstrap(): Promise<void> {
     }
     return res;
   });
-  ipcMain.handle('maestri:floor:switch', (_e, workspaceId: string, floorId: string | null, cam) =>
+  ipcMain.handle('orkestrei:floor:switch', (_e, workspaceId: string, floorId: string | null, cam) =>
     store.switchFloor(workspaceId, floorId, cam)
   );
   ipcMain.handle(
-    'maestri:floor:setStatus',
+    'orkestrei:floor:setStatus',
     (_e, workspaceId: string, floorId: string | null, status: FloorStatus | null) =>
       store.setFloorStatus(workspaceId, floorId, status)
   );
-  ipcMain.handle('maestri:floor:rename', (_e, workspaceId: string, floorId: string, name: string) =>
+  ipcMain.handle('orkestrei:floor:rename', (_e, workspaceId: string, floorId: string, name: string) =>
     store.renameFloor(workspaceId, floorId, name)
   );
   ipcMain.handle(
-    'maestri:floor:landingPreview',
+    'orkestrei:floor:landingPreview',
     (_e, workspaceId: string, floorId: string, targetBranch?: string) =>
       store.getFloorLandingPreview(workspaceId, floorId, targetBranch)
   );
-  ipcMain.handle('maestri:floor:land', (_e, workspaceId: string, floorId: string, opts) =>
+  ipcMain.handle('orkestrei:floor:land', (_e, workspaceId: string, floorId: string, opts) =>
     store.landFloor(workspaceId, floorId, opts)
   );
   ipcMain.handle(
-    'maestri:floorHooks:run',
+    'orkestrei:floorHooks:run',
     (_e, workspaceId: string, floorId: string | null, phase: 'setup' | 'run' | 'teardown') =>
       runFloorHooks(workspaceId, floorId, phase)
   );
-  ipcMain.handle('maestri:floor:delete', async (_e, workspaceId: string, floorId: string) => {
+  ipcMain.handle('orkestrei:floor:delete', async (_e, workspaceId: string, floorId: string) => {
     const res = await store.deleteFloor(workspaceId, floorId);
     for (const tid of res.removedTerminalIds) ptyManager.kill(tid);
     if (res.removedTerminalIds.length > 0) agentUsageService.syncTargets();
@@ -434,32 +435,32 @@ async function bootstrap(): Promise<void> {
 
   // Nodes & Frames
   ipcMain.handle(
-    'maestri:node:create',
+    'orkestrei:node:create',
     (_e, workspaceId: string, node: CanvasNode, floorId?: string | null) =>
       store.createNode(workspaceId, node, floorId)
   );
-  ipcMain.handle('maestri:node:duplicate', (_e, workspaceId: string, nodeId: string) =>
+  ipcMain.handle('orkestrei:node:duplicate', (_e, workspaceId: string, nodeId: string) =>
     store.duplicateNode(workspaceId, nodeId)
   );
   ipcMain.handle(
-    'maestri:node:moveToFloor',
+    'orkestrei:node:moveToFloor',
     (_e, workspaceId: string, nodeId: string, targetFloorId: string | null) =>
       store.moveNodeToFloor(workspaceId, nodeId, targetFloorId)
   );
   ipcMain.handle(
-    'maestri:node:setRedacted',
+    'orkestrei:node:setRedacted',
     (_e, workspaceId: string, nodeId: string, isRedacted: boolean) =>
       store.patchNode(workspaceId, nodeId, { isRedacted })
   );
-  ipcMain.handle('maestri:node:patch', (_e, workspaceId: string, nodeId: string, patch) =>
+  ipcMain.handle('orkestrei:node:patch', (_e, workspaceId: string, nodeId: string, patch) =>
     store.patchNode(workspaceId, nodeId, patch)
   );
   ipcMain.handle(
-    'maestri:node:patchFrames',
+    'orkestrei:node:patchFrames',
     (_e, workspaceId: string, patches: Array<{ nodeId: string; frame: Partial<Rect> }>) =>
       store.patchFrames(workspaceId, patches)
   );
-  ipcMain.handle('maestri:node:deleteMany', async (_e, workspaceId: string, nodeIds: string[]) => {
+  ipcMain.handle('orkestrei:node:deleteMany', async (_e, workspaceId: string, nodeIds: string[]) => {
     const res = await store.deleteNodes(workspaceId, nodeIds);
     for (const tid of res.deletedTerminalIds) ptyManager.kill(tid);
     if (res.deletedTerminalIds.length > 0) agentUsageService.syncTargets();
@@ -467,53 +468,53 @@ async function bootstrap(): Promise<void> {
   });
 
   // Groups & Drawings
-  ipcMain.handle('maestri:group:create', (_e, workspaceId: string, nodeIds: string[]) =>
+  ipcMain.handle('orkestrei:group:create', (_e, workspaceId: string, nodeIds: string[]) =>
     store.groupNodes(workspaceId, nodeIds)
   );
-  ipcMain.handle('maestri:group:ungroup', (_e, workspaceId: string, nodeIds: string[]) =>
+  ipcMain.handle('orkestrei:group:ungroup', (_e, workspaceId: string, nodeIds: string[]) =>
     store.ungroupNodes(workspaceId, nodeIds)
   );
-  ipcMain.handle('maestri:drawing:create', (_e, workspaceId: string, drawing: CanvasDrawing) =>
+  ipcMain.handle('orkestrei:drawing:create', (_e, workspaceId: string, drawing: CanvasDrawing) =>
     store.createDrawing(workspaceId, drawing)
   );
-  ipcMain.handle('maestri:drawing:delete', (_e, workspaceId: string, drawingId: string) =>
+  ipcMain.handle('orkestrei:drawing:delete', (_e, workspaceId: string, drawingId: string) =>
     store.deleteDrawing(workspaceId, drawingId)
   );
 
   // Connections & Cable Ties
-  ipcMain.handle('maestri:connection:connectNodes', (_e, workspaceId: string, a: string, b: string) =>
+  ipcMain.handle('orkestrei:connection:connectNodes', (_e, workspaceId: string, a: string, b: string) =>
     store.connectNodes(workspaceId, a, b)
   );
-  ipcMain.handle('maestri:connection:delete', (_e, workspaceId: string, connId: string) =>
+  ipcMain.handle('orkestrei:connection:delete', (_e, workspaceId: string, connId: string) =>
     store.deleteConnection(workspaceId, connId)
   );
-  ipcMain.handle('maestri:connection:removeAllFor', (_e, workspaceId: string, nodeId: string) =>
+  ipcMain.handle('orkestrei:connection:removeAllFor', (_e, workspaceId: string, nodeId: string) =>
     store.disconnectAllForNode(workspaceId, nodeId)
   );
-  ipcMain.handle('maestri:cableTie:create', (_e, workspaceId: string, tie: CableTie) =>
+  ipcMain.handle('orkestrei:cableTie:create', (_e, workspaceId: string, tie: CableTie) =>
     store.createCableTie(workspaceId, tie)
   );
-  ipcMain.handle('maestri:cableTie:move', (_e, workspaceId: string, tieId: string, pos: Point) =>
+  ipcMain.handle('orkestrei:cableTie:move', (_e, workspaceId: string, tieId: string, pos: Point) =>
     store.moveCableTie(workspaceId, tieId, pos)
   );
-  ipcMain.handle('maestri:cableTie:delete', (_e, workspaceId: string, tieId: string) =>
+  ipcMain.handle('orkestrei:cableTie:delete', (_e, workspaceId: string, tieId: string) =>
     store.deleteCableTie(workspaceId, tieId)
   );
 
   // Note Stacks (Fichários) & Notes
   ipcMain.handle(
-    'maestri:noteStack:fileNote',
+    'orkestrei:noteStack:fileNote',
     (_e, workspaceId: string, noteNodeId: string, stackName?: string | null) =>
       store.fileNoteIntoStack(workspaceId, noteNodeId, stackName)
   );
-  ipcMain.handle('maestri:noteStack:unstack', (_e, workspaceId: string, noteNodeId: string) =>
+  ipcMain.handle('orkestrei:noteStack:unstack', (_e, workspaceId: string, noteNodeId: string) =>
     store.unstackNote(workspaceId, noteNodeId)
   );
-  ipcMain.handle('maestri:note:write', (_e, workspaceId: string, nodeId: string, text: string) =>
+  ipcMain.handle('orkestrei:note:write', (_e, workspaceId: string, nodeId: string, text: string) =>
     store.updateNoteText(workspaceId, nodeId, text)
   );
   ipcMain.handle(
-    'maestri:note:setColor',
+    'orkestrei:note:setColor',
     (_e, workspaceId: string, nodeId: string, color: NoteColor) => {
       const ws = store.getWorkspace(workspaceId);
       const loc = ws ? store.findNodeLocation(ws, nodeId) : null;
@@ -526,32 +527,32 @@ async function bootstrap(): Promise<void> {
 
   // Bands
   ipcMain.handle(
-    'maestri:band:create',
+    'orkestrei:band:create',
     (_e, workspaceId: string, nodeIds: string[], name: string) =>
       store.createBand(workspaceId, nodeIds, name)
   );
   ipcMain.handle(
-    'maestri:band:addTerminal',
+    'orkestrei:band:addTerminal',
     (_e, workspaceId: string, bandNodeId: string, terminalNodeId: string) =>
       store.addTerminalToBand(workspaceId, bandNodeId, terminalNodeId)
   );
   ipcMain.handle(
-    'maestri:band:select',
+    'orkestrei:band:select',
     (_e, workspaceId: string, bandNodeId: string, memberNodeId: string) =>
       store.selectBandMember(workspaceId, bandNodeId, memberNodeId)
   );
   ipcMain.handle(
-    'maestri:band:removeMember',
+    'orkestrei:band:removeMember',
     (_e, workspaceId: string, bandNodeId: string, memberNodeId: string) =>
       store.removeBandMember(workspaceId, bandNodeId, memberNodeId)
   );
-  ipcMain.handle('maestri:band:dissolve', (_e, workspaceId: string, bandNodeId: string) =>
+  ipcMain.handle('orkestrei:band:dissolve', (_e, workspaceId: string, bandNodeId: string) =>
     store.dissolveBand(workspaceId, bandNodeId)
   );
 
   // Terminals & PTY
   ipcMain.handle(
-    'maestri:terminal:spawn',
+    'orkestrei:terminal:spawn',
     async (_e, input: { workspaceId: string; terminalId: string; cols?: number; rows?: number }) => {
       const ws = store.getWorkspace(input.workspaceId);
       if (!ws) return { ok: false, error: 'Workspace not found' };
@@ -570,21 +571,21 @@ async function bootstrap(): Promise<void> {
       });
     }
   );
-  ipcMain.on('maestri:terminal:write', (_e, terminalId: string, data: string) =>
+  ipcMain.on('orkestrei:terminal:write', (_e, terminalId: string, data: string) =>
     ptyManager.write(terminalId, data)
   );
-  ipcMain.handle('maestri:terminal:deliverPrompt', (_e, terminalId: string, text: string) =>
+  ipcMain.handle('orkestrei:terminal:deliverPrompt', (_e, terminalId: string, text: string) =>
     ptyManager.deliverPrompt(terminalId, text)
   );
   ipcMain.handle(
-    'maestri:terminal:resize',
+    'orkestrei:terminal:resize',
     (_e, terminalId: string, cols: number, rows: number) => ptyManager.resize(terminalId, cols, rows)
   );
-  ipcMain.handle('maestri:terminal:kill', (_e, terminalId: string) => {
+  ipcMain.handle('orkestrei:terminal:kill', (_e, terminalId: string) => {
     ptyManager.kill(terminalId);
     agentUsageService.syncTargets();
   });
-  ipcMain.handle('maestri:terminal:restart', async (_e, workspaceId: string, terminalId: string) => {
+  ipcMain.handle('orkestrei:terminal:restart', async (_e, workspaceId: string, terminalId: string) => {
     const ws = store.getWorkspace(workspaceId);
     if (!ws) return { ok: false };
     const found = store.findTerminal(ws, terminalId);
@@ -599,25 +600,25 @@ async function bootstrap(): Promise<void> {
       role,
     });
   });
-  ipcMain.handle('maestri:terminal:getScrollback', (_e, terminalId: string) =>
+  ipcMain.handle('orkestrei:terminal:getScrollback', (_e, terminalId: string) =>
     ptyManager.getScrollback(terminalId)
   );
-  ipcMain.handle('maestri:terminal:activityState', () => ptyManager.getActivityState());
-  ipcMain.handle('maestri:tokens:get', () => tokenUsageService.getSnapshot());
-  ipcMain.handle('maestri:agentUsage:get', () => agentUsageService.getSnapshot());
-  ipcMain.handle('maestri:agentUsage:refresh', (_e, providerId?: AgentUsageProviderId) =>
+  ipcMain.handle('orkestrei:terminal:activityState', () => ptyManager.getActivityState());
+  ipcMain.handle('orkestrei:tokens:get', () => tokenUsageService.getSnapshot());
+  ipcMain.handle('orkestrei:agentUsage:get', () => agentUsageService.getSnapshot());
+  ipcMain.handle('orkestrei:agentUsage:refresh', (_e, providerId?: AgentUsageProviderId) =>
     agentUsageService.refresh(providerId)
   );
-  ipcMain.handle('maestri:terminal:inspect', (_e, terminalId: string) =>
+  ipcMain.handle('orkestrei:terminal:inspect', (_e, terminalId: string) =>
     ptyManager.getEntryInfo(terminalId)
   );
   ipcMain.handle(
-    'maestri:terminal:updateData',
+    'orkestrei:terminal:updateData',
     (_e, workspaceId: string, terminalId: string, patch) =>
       store.updateTerminalData(workspaceId, terminalId, patch)
   );
   ipcMain.handle(
-    'maestri:terminal:savePastedImage',
+    'orkestrei:terminal:savePastedImage',
     async (
       _e,
       input: {
@@ -723,7 +724,7 @@ async function bootstrap(): Promise<void> {
         return { ok: false, error: 'Image exceeds 10 MiB limit' };
       }
 
-      const tmpDir = path.join(matchedRoot, '.maestri', 'tmp');
+      const tmpDir = path.join(matchedRoot, '.orkestrei', 'tmp');
       await fsp.mkdir(tmpDir, { recursive: true });
       const outPath = path.join(tmpDir, rawName);
       if (!(await fileTreeService.isPathWithinRoots(outPath, [tmpDir]))) {
@@ -736,41 +737,41 @@ async function bootstrap(): Promise<void> {
   );
 
   // Saved Prompts
-  ipcMain.handle('maestri:savedPrompts:list', () => store.listSavedPrompts());
+  ipcMain.handle('orkestrei:savedPrompts:list', () => store.listSavedPrompts());
   ipcMain.handle(
-    'maestri:savedPrompts:save',
+    'orkestrei:savedPrompts:save',
     (_e, input: { id?: string; title: string; prompt: string; tags?: string[] }) =>
       store.savePrompt(input)
   );
-  ipcMain.handle('maestri:savedPrompts:delete', (_e, id: string) => store.deleteSavedPrompt(id));
+  ipcMain.handle('orkestrei:savedPrompts:delete', (_e, id: string) => store.deleteSavedPrompt(id));
 
   // Inter-agent peers for composer @mentions
-  ipcMain.handle('maestri:interAgent:listPeers', (_e, workspaceId: string, terminalId: string) => {
+  ipcMain.handle('orkestrei:interAgent:listPeers', (_e, workspaceId: string, terminalId: string) => {
     const ws = store.getWorkspace(workspaceId);
     if (!ws) return null;
     return store.buildReachableList(ws, terminalId, (tid) => ptyManager.isRunning(tid));
   });
 
   // Roles, Presets, Partituras, Routines
-  ipcMain.handle('maestri:roles:list', (_e, workspaceId?: string | null) =>
+  ipcMain.handle('orkestrei:roles:list', (_e, workspaceId?: string | null) =>
     store.listRoles(workspaceId)
   );
-  ipcMain.handle('maestri:roles:create', (_e, input) => store.createRole(input));
-  ipcMain.handle('maestri:roles:update', (_e, id: string, patch: Partial<RolePreset>) =>
+  ipcMain.handle('orkestrei:roles:create', (_e, input) => store.createRole(input));
+  ipcMain.handle('orkestrei:roles:update', (_e, id: string, patch: Partial<RolePreset>) =>
     store.updateRole(id, patch)
   );
-  ipcMain.handle('maestri:roles:delete', (_e, id: string) => store.deleteRole(id));
+  ipcMain.handle('orkestrei:roles:delete', (_e, id: string) => store.deleteRole(id));
 
-  ipcMain.handle('maestri:partitura:list', (_e, workspaceId?: string | null) =>
+  ipcMain.handle('orkestrei:partitura:list', (_e, workspaceId?: string | null) =>
     store.listPartituras(workspaceId)
   );
   ipcMain.handle(
-    'maestri:partitura:save',
+    'orkestrei:partitura:save',
     (_e, part: Omit<Partitura, 'id' | 'createdAt'> & { id?: string }) => store.savePartitura(part)
   );
-  ipcMain.handle('maestri:partitura:delete', (_e, id: string) => store.deletePartitura(id));
+  ipcMain.handle('orkestrei:partitura:delete', (_e, id: string) => store.deletePartitura(id));
   ipcMain.handle(
-    'maestri:partitura:insert',
+    'orkestrei:partitura:insert',
     (_e, workspaceId: string, partituraId: string) => {
       const part = store.listPartituras(workspaceId).find((p) => idsEqual(p.id, partituraId));
       if (!part) return [];
@@ -778,11 +779,11 @@ async function bootstrap(): Promise<void> {
     }
   );
 
-  ipcMain.handle('maestri:routine:list', (_e, workspaceId?: string | null) =>
+  ipcMain.handle('orkestrei:routine:list', (_e, workspaceId?: string | null) =>
     routineScheduler.list(workspaceId)
   );
   ipcMain.handle(
-    'maestri:routine:create',
+    'orkestrei:routine:create',
     (
       _e,
       input: {
@@ -796,41 +797,41 @@ async function bootstrap(): Promise<void> {
       }
     ) => routineScheduler.create(input)
   );
-  ipcMain.handle('maestri:routine:setEnabled', (_e, id: string, enabled: boolean) =>
+  ipcMain.handle('orkestrei:routine:setEnabled', (_e, id: string, enabled: boolean) =>
     routineScheduler.setEnabled(id, enabled)
   );
-  ipcMain.handle('maestri:routine:runNow', (_e, id: string) => routineScheduler.runNow(id));
-  ipcMain.handle('maestri:routine:delete', (_e, id: string) => routineScheduler.delete(id));
-  ipcMain.handle('maestri:routine:history', (_e, workspaceId?: string | null) =>
+  ipcMain.handle('orkestrei:routine:runNow', (_e, id: string) => routineScheduler.runNow(id));
+  ipcMain.handle('orkestrei:routine:delete', (_e, id: string) => routineScheduler.delete(id));
+  ipcMain.handle('orkestrei:routine:history', (_e, workspaceId?: string | null) =>
     routineScheduler.getHistory(workspaceId)
   );
 
   // FileTree & Git
   ipcMain.handle(
-    'maestri:fileTree:list',
+    'orkestrei:fileTree:list',
     (_e, rootPath: string, dirPath: string, showHidden?: boolean) =>
       fileTreeService.listDirectory(rootPath, dirPath, showHidden, getAllowedFileTreeRoots())
   );
-  ipcMain.handle('maestri:fileTree:watch', async (_e, nodeId: string, dirPath: string) => {
+  ipcMain.handle('orkestrei:fileTree:watch', async (_e, nodeId: string, dirPath: string) => {
     if (!(await fileTreeService.isPathWithinRoots(dirPath, getAllowedFileTreeRoots()))) return;
     fileTreeService.watchDirectory(nodeId, dirPath);
   });
-  ipcMain.handle('maestri:fileTree:unwatch', (_e, nodeId: string) =>
+  ipcMain.handle('orkestrei:fileTree:unwatch', (_e, nodeId: string) =>
     fileTreeService.unwatchDirectory(nodeId)
   );
-  ipcMain.handle('maestri:fileTree:readFile', (_e, filePath: string) =>
+  ipcMain.handle('orkestrei:fileTree:readFile', (_e, filePath: string) =>
     fileTreeService.readFile(filePath, getAllowedFileTreeRoots())
   );
-  ipcMain.handle('maestri:fileTree:writeFile', (_e, filePath: string, text: string) =>
+  ipcMain.handle('orkestrei:fileTree:writeFile', (_e, filePath: string, text: string) =>
     fileTreeService.writeFile(filePath, text, getAllowedFileTreeRoots())
   );
-  ipcMain.handle('maestri:fileTree:gitInfo', async (_e, rootPath: string) => {
+  ipcMain.handle('orkestrei:fileTree:gitInfo', async (_e, rootPath: string) => {
     if (!(await fileTreeService.isPathWithinRoots(rootPath, getAllowedFileTreeRoots()))) {
       return { isRepo: false, branch: null, changes: [] };
     }
     return fileTreeService.getGitInfo(rootPath);
   });
-  ipcMain.handle('maestri:fileTree:gitDiff', async (_e, rootPath: string, filePath?: string) => {
+  ipcMain.handle('orkestrei:fileTree:gitDiff', async (_e, rootPath: string, filePath?: string) => {
     const roots = getAllowedFileTreeRoots();
     if (!(await fileTreeService.isPathWithinRoots(rootPath, roots))) return '';
     if (filePath && !(await fileTreeService.isPathWithinRoots(path.resolve(rootPath, filePath), [rootPath]))) {
@@ -838,7 +839,7 @@ async function bootstrap(): Promise<void> {
     }
     return fileTreeService.getGitDiff(rootPath, filePath);
   });
-  ipcMain.handle('maestri:fileTree:gitCommit', async (_e, rootPath: string, msg: string) => {
+  ipcMain.handle('orkestrei:fileTree:gitCommit', async (_e, rootPath: string, msg: string) => {
     if (!(await fileTreeService.isPathWithinRoots(rootPath, getAllowedFileTreeRoots()))) {
       return { ok: false, output: 'Access denied: path is outside workspace/floor root' };
     }
@@ -846,43 +847,43 @@ async function bootstrap(): Promise<void> {
   });
 
   // Portal
-  ipcMain.handle('maestri:portal:register', (_e, portalId: string, wcId: number) =>
+  ipcMain.handle('orkestrei:portal:register', (_e, portalId: string, wcId: number) =>
     portalBridge.register(portalId, wcId)
   );
-  ipcMain.handle('maestri:portal:unregister', (_e, portalId: string) =>
+  ipcMain.handle('orkestrei:portal:unregister', (_e, portalId: string) =>
     portalBridge.unregister(portalId)
   );
-  ipcMain.handle('maestri:portal:action', (_e, portalId: string, action: string, params) =>
+  ipcMain.handle('orkestrei:portal:action', (_e, portalId: string, action: string, params) =>
     portalBridge.executeAction(portalId, action, params)
   );
 
   // Chat
-  ipcMain.handle('maestri:chat:getState', (_e, terminalId: string) =>
+  ipcMain.handle('orkestrei:chat:getState', (_e, terminalId: string) =>
     chatStore.getState(terminalId)
   );
-  ipcMain.handle('maestri:chat:switchThread', (_e, terminalId: string, slot: ChatThreadColor) =>
+  ipcMain.handle('orkestrei:chat:switchThread', (_e, terminalId: string, slot: ChatThreadColor) =>
     chatStore.switchThread(terminalId, slot)
   );
-  ipcMain.handle('maestri:chat:clearThread', (_e, terminalId: string, slot: ChatThreadColor) =>
+  ipcMain.handle('orkestrei:chat:clearThread', (_e, terminalId: string, slot: ChatThreadColor) =>
     chatStore.clearThread(terminalId, slot)
   );
   ipcMain.handle(
-    'maestri:chat:send',
+    'orkestrei:chat:send',
     async (_e, terminalId: string, slot: ChatThreadColor, text: string) => {
       const entry = await chatStore.appendEntry(terminalId, slot, { role: 'user', text });
-      const header = `---\nBelow is a message from the user through Maestri Chat.\nReply via \`maestri say\`. Terminal text also runs normally.\nthread: ${slot}\n---\n${text}`;
+      const header = `---\nBelow is a message from the user through Orkestrei Chat.\nReply via \`orkestrei say\`. Terminal text also runs normally.\nthread: ${slot}\n---\n${text}`;
       await ptyManager.deliverPrompt(terminalId, header);
       return entry;
     }
   );
 
   // Presets convenience
-  ipcMain.handle('maestri:presets:save', async (_e, presets: AgentPreset[]) =>
+  ipcMain.handle('orkestrei:presets:save', async (_e, presets: AgentPreset[]) =>
     store.setPreferences({ agentPresets: presets })
   );
 
   // License (Always licensed locally)
-  ipcMain.handle('maestri:license:get', () => ({
+  ipcMain.handle('orkestrei:license:get', () => ({
     status: { kind: 'licensed' },
     machineName: os.hostname(),
     canCreateWorkspace: true,
@@ -916,10 +917,10 @@ async function bootstrap(): Promise<void> {
   });
 
   mainWindow.on('maximize', () =>
-    broadcast('maestri:windowControls:onChanged', { maximized: true, minimized: false })
+    broadcast('orkestrei:windowControls:onChanged', { maximized: true, minimized: false })
   );
   mainWindow.on('unmaximize', () =>
-    broadcast('maestri:windowControls:onChanged', { maximized: false, minimized: false })
+    broadcast('orkestrei:windowControls:onChanged', { maximized: false, minimized: false })
   );
 
   if (process.env.ELECTRON_RENDERER_URL) {

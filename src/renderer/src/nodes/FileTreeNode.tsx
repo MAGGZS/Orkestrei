@@ -38,9 +38,9 @@ export const FileTreeNode: React.FC<{ node: CanvasNode }> = ({ node }) => {
 
   const refresh = async () => {
     if (!rootPath) return;
-    const list = await window.maestri.fileTree.list(rootPath, rootPath, ft?.showHidden);
+    const list = await window.orkestrei.fileTree.list(rootPath, rootPath, ft?.showHidden);
     setEntries(list);
-    const git = await window.maestri.fileTree.gitInfo(rootPath);
+    const git = await window.orkestrei.fileTree.gitInfo(rootPath);
     setGitBranch(git.isRepo ? git.branch : null);
     setGitChangesCount(git.changes.length);
   };
@@ -48,13 +48,13 @@ export const FileTreeNode: React.FC<{ node: CanvasNode }> = ({ node }) => {
   useEffect(() => {
     if (!rootPath) return;
     void refresh();
-    void window.maestri.fileTree.watch(node.id, rootPath);
-    const unsub = window.maestri.fileTree.onDidChange((nid) => {
+    void window.orkestrei.fileTree.watch(node.id, rootPath);
+    const unsub = window.orkestrei.fileTree.onDidChange((nid) => {
       if (nid === node.id) void refresh();
     });
     return () => {
       unsub();
-      void window.maestri.fileTree.unwatch(node.id);
+      void window.orkestrei.fileTree.unwatch(node.id);
     };
   }, [node.id, rootPath]);
 
@@ -67,7 +67,7 @@ export const FileTreeNode: React.FC<{ node: CanvasNode }> = ({ node }) => {
       setExpanded(next);
       return;
     }
-    const children = await window.maestri.fileTree.list(rootPath, dirPath, ft.showHidden);
+    const children = await window.orkestrei.fileTree.list(rootPath, dirPath, ft.showHidden);
     const next = new Map(expanded);
     next.set(dirPath, children);
     setExpanded(next);
@@ -165,7 +165,7 @@ export const FileTreeNode: React.FC<{ node: CanvasNode }> = ({ node }) => {
               </button>
               <button
                 type="button"
-                onClick={() => void window.maestri.node.deleteMany(workspace.id, [node.id])}
+                onClick={() => void window.orkestrei.node.deleteMany(workspace.id, [node.id])}
                 className="rounded p-1 text-[var(--muted-foreground)] hover:bg-[var(--destructive)]/20 hover:text-[var(--destructive)]"
               >
                 <Trash2 className="size-3" />
@@ -179,7 +179,7 @@ export const FileTreeNode: React.FC<{ node: CanvasNode }> = ({ node }) => {
               onSubmit={async (e) => {
                 e.preventDefault();
                 if (!commitMsg.trim()) return;
-                await window.maestri.fileTree.gitCommit(rootPath, commitMsg.trim());
+                await window.orkestrei.fileTree.gitCommit(rootPath, commitMsg.trim());
                 setCommitMsg('');
                 setShowCommit(false);
                 void refresh();

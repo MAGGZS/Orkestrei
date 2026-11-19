@@ -120,7 +120,7 @@ export const OrchestrationSheets: React.FC = () => {
   const loadLandingPreview = async (wsId: string, floorId: string, into?: string) => {
     setLandingLoading(true);
     setLandingError(null);
-    const prev = await window.maestri.floor.landingPreview(wsId, floorId, into);
+    const prev = await window.orkestrei.floor.landingPreview(wsId, floorId, into);
     setLandingPreview(prev);
     setLandingLoading(false);
   };
@@ -128,7 +128,7 @@ export const OrchestrationSheets: React.FC = () => {
   useEffect(() => {
     if (sheet?.kind === 'fileEditor') {
       setFileError(null);
-      void window.maestri.fileTree.readFile(sheet.filePath).then((res) => {
+      void window.orkestrei.fileTree.readFile(sheet.filePath).then((res) => {
         if (res.ok) setFileContent(res.content);
         else setFileError(res.error);
       });
@@ -150,12 +150,12 @@ export const OrchestrationSheets: React.FC = () => {
           onSubmit={async (e) => {
             e.preventDefault();
             if (!wsName.trim() || !wsDir.trim()) return;
-            const created = await window.maestri.workspace.create({
+            const created = await window.orkestrei.workspace.create({
               name: wsName.trim(),
               workingDirectory: wsDir.trim(),
               fromWorkspaceId: wsFrom || null,
             });
-            await window.maestri.workspace.switch(created.id);
+            await window.orkestrei.workspace.switch(created.id);
             setWsName('');
             setWsDir('');
             close();
@@ -188,7 +188,7 @@ export const OrchestrationSheets: React.FC = () => {
               <button
                 type="button"
                 onClick={async () => {
-                  const picked = await window.maestri.app.pickDirectory();
+                  const picked = await window.orkestrei.app.pickDirectory();
                   if (picked) setWsDir(picked);
                 }}
                 className="flex items-center gap-1 rounded-xl bg-[var(--secondary)] px-3 py-2 font-medium hover:opacity-90"
@@ -238,14 +238,14 @@ export const OrchestrationSheets: React.FC = () => {
           onSubmit={async (e) => {
             e.preventDefault();
             if (!floorName.trim()) return;
-            const res = await window.maestri.floor.create(workspace.id, {
+            const res = await window.orkestrei.floor.create(workspace.id, {
               name: floorName.trim(),
               branchName: floorBranch.trim() || undefined,
               noGit: floorNoGit,
               copyGround: floorCopyGround,
             });
             if (res.ok) {
-              await window.maestri.floor.switch(workspace.id, res.floor.id);
+              await window.orkestrei.floor.switch(workspace.id, res.floor.id);
               setFloorName('');
               setFloorBranch('');
               close();
@@ -281,7 +281,7 @@ export const OrchestrationSheets: React.FC = () => {
               checked={!floorNoGit}
               onChange={(e) => setFloorNoGit(!e.target.checked)}
             />
-            <span>Isolate in a Git Worktree (.maestri/floors/...)</span>
+            <span>Isolate in a Git Worktree (.orkestrei/floors/...)</span>
           </label>
           <label className="flex items-center gap-2">
             <input
@@ -313,7 +313,7 @@ export const OrchestrationSheets: React.FC = () => {
             e.preventDefault();
             if (!floor) return;
             setLandingError(null);
-            const res = await window.maestri.floor.land(workspace.id, floor.id, {
+            const res = await window.orkestrei.floor.land(workspace.id, floor.id, {
               intoBranch: landInto.trim() || undefined,
               deleteBranch: landDeleteBranch,
             });
@@ -437,7 +437,7 @@ export const OrchestrationSheets: React.FC = () => {
     const currentCmds = hooks[cmdsKey];
 
     const saveHooksPatch = (nextHooks: typeof hooks) => {
-      void window.maestri.workspace.patch(workspace.id, { hooks: nextHooks });
+      void window.orkestrei.workspace.patch(workspace.id, { hooks: nextHooks });
     };
 
     const handleAddHook = () => {
@@ -457,7 +457,7 @@ export const OrchestrationSheets: React.FC = () => {
 
     const handleRunPhase = async () => {
       setHookRunning(true);
-      const res = await window.maestri.floorHooks.run(
+      const res = await window.orkestrei.floorHooks.run(
         workspace.id,
         workspace.activeFloorId,
         hookPhaseTab
@@ -610,7 +610,7 @@ export const OrchestrationSheets: React.FC = () => {
         <form
           onSubmit={async (e) => {
             e.preventDefault();
-            await window.maestri.band.create(workspace.id, sheet.nodeIds, bandName.trim() || 'Squad');
+            await window.orkestrei.band.create(workspace.id, sheet.nodeIds, bandName.trim() || 'Squad');
             close();
           }}
           className="space-y-3"
@@ -663,7 +663,7 @@ export const OrchestrationSheets: React.FC = () => {
                 type="button"
                 onClick={async () => {
                   if (!partName.trim()) return;
-                  await window.maestri.partitura.save({
+                  await window.orkestrei.partitura.save({
                     name: partName.trim(),
                     summary: partSummary.trim() || `${level.nodes.length} nodes`,
                     icon: 'sparkles',
@@ -707,7 +707,7 @@ export const OrchestrationSheets: React.FC = () => {
                   <button
                     type="button"
                     onClick={async () => {
-                      await window.maestri.partitura.insert(workspace.id, p.id);
+                      await window.orkestrei.partitura.insert(workspace.id, p.id);
                       close();
                     }}
                     className="rounded-xl bg-[var(--accent)] px-3 py-1.5 font-medium text-white hover:opacity-90"
@@ -716,7 +716,7 @@ export const OrchestrationSheets: React.FC = () => {
                   </button>
                   <button
                     type="button"
-                    onClick={() => void window.maestri.partitura.delete(p.id)}
+                    onClick={() => void window.orkestrei.partitura.delete(p.id)}
                     className="rounded-lg p-1.5 text-[var(--muted-foreground)] hover:text-[var(--destructive)]"
                   >
                     <Trash2 className="size-3.5" />
@@ -754,7 +754,7 @@ export const OrchestrationSheets: React.FC = () => {
                   </div>
                   <button
                     type="button"
-                    onClick={() => void window.maestri.roles.delete(r.id)}
+                    onClick={() => void window.orkestrei.roles.delete(r.id)}
                     className="rounded p-1 text-[var(--muted-foreground)] hover:text-[var(--destructive)]"
                   >
                     <Trash2 className="size-3.5" />
@@ -790,7 +790,7 @@ export const OrchestrationSheets: React.FC = () => {
                 type="button"
                 onClick={async () => {
                   if (!roleName.trim()) return;
-                  await window.maestri.roles.create({
+                  await window.orkestrei.roles.create({
                     name: roleName.trim(),
                     prompt: rolePrompt.trim(),
                     scope: roleScope,
@@ -841,7 +841,7 @@ export const OrchestrationSheets: React.FC = () => {
                               n.content.kind === 'terminal' &&
                               n.content.terminal.presetId === p.id
                           ).length + 1;
-                        await window.maestri.node.create(workspace.id, {
+                        await window.orkestrei.node.create(workspace.id, {
                           id: crypto.randomUUID(),
                           frame: {
                             x: 120 + (level.nodes.length % 4) * 44,
@@ -882,7 +882,7 @@ export const OrchestrationSheets: React.FC = () => {
                     <button
                       type="button"
                       onClick={() =>
-                        void window.maestri.preferences.set({
+                        void window.orkestrei.preferences.set({
                           agentPresets: prefs.agentPresets.filter((x) => x.id !== p.id),
                         })
                       }
@@ -942,7 +942,7 @@ export const OrchestrationSheets: React.FC = () => {
                     showInQuickStart: true,
                     account: 'Default',
                   };
-                  await window.maestri.preferences.set({
+                  await window.orkestrei.preferences.set({
                     agentPresets: [...prefs.agentPresets, next],
                   });
                   setPresetName('');
@@ -1038,7 +1038,7 @@ export const OrchestrationSheets: React.FC = () => {
                     onClick={async () => {
                       if (!routineName.trim() || !routineCmd.trim()) return;
                       const schedule: RoutineSchedule = { kind: routineKind, value: routineVal };
-                      await window.maestri.routines.create({
+                      await window.orkestrei.routines.create({
                         workspaceId: workspace.id,
                         name: routineName.trim(),
                         command: routineCmd.trim(),
@@ -1076,7 +1076,7 @@ export const OrchestrationSheets: React.FC = () => {
                     <div className="flex items-center gap-1.5">
                       <button
                         type="button"
-                        onClick={() => void window.maestri.routines.runNow(r.id)}
+                        onClick={() => void window.orkestrei.routines.runNow(r.id)}
                         className="flex items-center gap-1 rounded-lg bg-[var(--secondary)] px-2 py-1 hover:opacity-90"
                         title="Run now"
                       >
@@ -1085,7 +1085,7 @@ export const OrchestrationSheets: React.FC = () => {
                       </button>
                       <button
                         type="button"
-                        onClick={() => void window.maestri.routines.setEnabled(r.id, !r.enabled)}
+                        onClick={() => void window.orkestrei.routines.setEnabled(r.id, !r.enabled)}
                         className={`rounded-lg px-2 py-1 ${
                           r.enabled
                             ? 'bg-[var(--success)]/20 text-[var(--success)]'
@@ -1096,7 +1096,7 @@ export const OrchestrationSheets: React.FC = () => {
                       </button>
                       <button
                         type="button"
-                        onClick={() => void window.maestri.routines.delete(r.id)}
+                        onClick={() => void window.orkestrei.routines.delete(r.id)}
                         className="p-1 text-[var(--muted-foreground)] hover:text-[var(--destructive)]"
                       >
                         <Trash2 className="size-3.5" />
@@ -1135,7 +1135,7 @@ export const OrchestrationSheets: React.FC = () => {
             <select
               value={prefs.theme}
               onChange={(e) =>
-                void window.maestri.preferences.set({
+                void window.orkestrei.preferences.set({
                   theme: e.target.value as 'dark' | 'light' | 'system',
                 })
               }
@@ -1150,7 +1150,7 @@ export const OrchestrationSheets: React.FC = () => {
             <select
               value={prefs.canvasBackground}
               onChange={(e) =>
-                void window.maestri.preferences.set({
+                void window.orkestrei.preferences.set({
                   canvasBackground: e.target.value as 'grid' | 'solid',
                 })
               }
@@ -1168,7 +1168,7 @@ export const OrchestrationSheets: React.FC = () => {
               max={24}
               value={prefs.fontSize}
               onChange={(e) =>
-                void window.maestri.preferences.set({ fontSize: Number(e.target.value) || 13 })
+                void window.orkestrei.preferences.set({ fontSize: Number(e.target.value) || 13 })
               }
               className="w-20 rounded-lg bg-[var(--input)] px-2.5 py-1.5 outline-none"
             />
@@ -1217,7 +1217,7 @@ export const OrchestrationSheets: React.FC = () => {
               <button
                 type="button"
                 onClick={async () => {
-                  await window.maestri.fileTree.writeFile(sheet.filePath, fileContent);
+                  await window.orkestrei.fileTree.writeFile(sheet.filePath, fileContent);
                   close();
                 }}
                 className="rounded-xl bg-[var(--accent)] px-4 py-1.5 font-medium text-white"

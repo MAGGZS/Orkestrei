@@ -40,7 +40,7 @@ export const FicharioNode: React.FC<{ node: CanvasNode }> = ({ node }) => {
     const pending = pendingWriteRef.current;
     if (pending) {
       pendingWriteRef.current = null;
-      void window.maestri.note.write(pending.workspaceId, pending.nodeId, pending.text);
+      void window.orkestrei.note.write(pending.workspaceId, pending.nodeId, pending.text);
     }
   }, []);
 
@@ -89,7 +89,7 @@ export const FicharioNode: React.FC<{ node: CanvasNode }> = ({ node }) => {
       text: `# Page ${pageNum}\n\n`,
       storageMode: { kind: 'managed' },
     };
-    await window.maestri.node.create(workspace.id, {
+    await window.orkestrei.node.create(workspace.id, {
       id: newNoteId,
       frame: { x: node.frame.x + 20, y: node.frame.y + 20, width: 260, height: 240 },
       zIndex: 1,
@@ -98,7 +98,7 @@ export const FicharioNode: React.FC<{ node: CanvasNode }> = ({ node }) => {
       lastModifiedAt: now,
       content: { kind: 'stickyNote', stickyNote: noteData },
     });
-    await window.maestri.noteStack.fileNote(workspace.id, newNoteId, stack.name);
+    await window.orkestrei.noteStack.fileNote(workspace.id, newNoteId, stack.name);
   };
 
   return (
@@ -148,7 +148,7 @@ export const FicharioNode: React.FC<{ node: CanvasNode }> = ({ node }) => {
                   type="button"
                   onClick={() => {
                     flushPendingSave();
-                    void window.maestri.noteStack.unstack(workspace.id, frontNode.id);
+                    void window.orkestrei.noteStack.unstack(workspace.id, frontNode.id);
                   }}
                   title="Spill current page back onto canvas"
                   className="rounded p-1 opacity-70 hover:bg-black/10 hover:opacity-100"
@@ -160,7 +160,7 @@ export const FicharioNode: React.FC<{ node: CanvasNode }> = ({ node }) => {
                 type="button"
                 onClick={() => {
                   cancelPendingSave();
-                  void window.maestri.node.deleteMany(workspace.id, [node.id]);
+                  void window.orkestrei.node.deleteMany(workspace.id, [node.id]);
                 }}
                 title="Delete fichário"
                 className="rounded p-1 opacity-70 hover:bg-black/10 hover:text-red-600 hover:opacity-100"
@@ -186,7 +186,7 @@ export const FicharioNode: React.FC<{ node: CanvasNode }> = ({ node }) => {
                     type="button"
                     onClick={() => {
                       flushPendingSave();
-                      void window.maestri.node.patch(workspace.id, node.id, {
+                      void window.orkestrei.node.patch(workspace.id, node.id, {
                         content: {
                           kind: 'noteStack',
                           noteStack: { ...stack, frontNoteId: mn.id },
@@ -219,7 +219,7 @@ export const FicharioNode: React.FC<{ node: CanvasNode }> = ({ node }) => {
                     onChangeText={(val) => {
                       setDraftText(val);
                       cancelPendingSave();
-                      void window.maestri.note.write(workspace.id, frontNode.id, val);
+                      void window.orkestrei.note.write(workspace.id, frontNode.id, val);
                     }}
                   />
                 </div>
@@ -244,7 +244,7 @@ export const FicharioNode: React.FC<{ node: CanvasNode }> = ({ node }) => {
                       const pending = pendingWriteRef.current;
                       if (pending) {
                         pendingWriteRef.current = null;
-                        void window.maestri.note.write(
+                        void window.orkestrei.note.write(
                           pending.workspaceId,
                           pending.nodeId,
                           pending.text

@@ -197,8 +197,8 @@ describe('AgentUsageService & CLI helpers', () => {
         SystemRoot: 'C:\\Windows',
         CLAUDECODE: '1',
         CLAUDE_CODE_ENTRYPOINT: 'cli',
-        MAESTRI_TOKEN: 'secret-token',
-        MAESTRI_PIPE: 'http://127.0.0.1:9999',
+        ORKESTREI_TOKEN: 'secret-token',
+        ORKESTREI_PIPE: 'http://127.0.0.1:9999',
         ELECTRON_RUN_AS_NODE: '1',
       },
       tempRoot
@@ -211,8 +211,8 @@ describe('AgentUsageService & CLI helpers', () => {
     expect(env.PATH).toContain(path.dirname(process.execPath));
     expect(env.CLAUDECODE).toBeUndefined();
     expect(env.CLAUDE_CODE_ENTRYPOINT).toBeUndefined();
-    expect(env.MAESTRI_TOKEN).toBeUndefined();
-    expect(env.MAESTRI_PIPE).toBeUndefined();
+    expect(env.ORKESTREI_TOKEN).toBeUndefined();
+    expect(env.ORKESTREI_PIPE).toBeUndefined();
     expect(env.ELECTRON_RUN_AS_NODE).toBeUndefined();
   });
 

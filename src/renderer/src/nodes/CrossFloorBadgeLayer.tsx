@@ -81,7 +81,7 @@ export const CrossFloorBadgeLayer: React.FC = () => {
             title: `Cross-floor rope to ${peerInfo?.name ?? 'Peer'} on ${floorName}. Click to switch floor.`,
             kind: 'floor',
             onClick: () => {
-              void window.maestri.floor.switch(workspace.id, peerFloorId);
+              void window.orkestrei.floor.switch(workspace.id, peerFloorId);
             },
           });
         }
@@ -98,7 +98,7 @@ export const CrossFloorBadgeLayer: React.FC = () => {
             title: `Cross-workspace link to ${remoteWs.name}. Click to switch workspace.`,
             kind: 'workspace',
             onClick: () => {
-              void window.maestri.workspace.switch(remoteWs.id);
+              void window.orkestrei.workspace.switch(remoteWs.id);
             },
           });
         }

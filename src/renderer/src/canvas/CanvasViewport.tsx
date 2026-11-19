@@ -358,7 +358,7 @@ export const CanvasViewport: React.FC = () => {
           const termId = resolveFocusedTerminalId(resolveFocusedNodeId());
           const ctrlChar = getTmuxPrefixControlChar(s.tmuxPrefixSetting);
           if (termId && ctrlChar) {
-            window.maestri.terminal.write(termId, ctrlChar);
+            window.orkestrei.terminal.write(termId, ctrlChar);
           }
         }
         return;
@@ -488,13 +488,13 @@ export const CanvasViewport: React.FC = () => {
         setMode('select');
       }
       if ((e.key === 'Delete' || e.key === 'Backspace') && selectedIds.size > 0 && workspace) {
-        void window.maestri.node.deleteMany(workspace.id, [...selectedIds]);
+        void window.orkestrei.node.deleteMany(workspace.id, [...selectedIds]);
         setSelectedIds(new Set());
       }
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z' && workspace) {
         e.preventDefault();
-        if (e.shiftKey) void window.maestri.workspace.redo(workspace.id);
-        else void window.maestri.workspace.undo(workspace.id);
+        if (e.shiftKey) void window.orkestrei.workspace.redo(workspace.id);
+        else void window.orkestrei.workspace.undo(workspace.id);
       }
       if (!e.ctrlKey && !e.metaKey && !e.altKey) {
         const k = e.key.toLowerCase();
@@ -691,7 +691,7 @@ export const CanvasViewport: React.FC = () => {
       };
     }
 
-    await window.maestri.node.create(workspace.id, node);
+    await window.orkestrei.node.create(workspace.id, node);
     setSelectedIds(new Set([node.id]));
     setMode('select');
   };
@@ -770,7 +770,7 @@ export const CanvasViewport: React.FC = () => {
           const dx = end.x - start.x;
           const dy = end.y - start.y;
           const len = Math.hypot(dx, dy) || 1;
-          void window.maestri.cableTie.create(workspace.id, {
+          void window.orkestrei.cableTie.create(workspace.id, {
             id: crypto.randomUUID(),
             position: { x: avgX, y: avgY },
             perp: { x: dx / len, y: dy / len },
@@ -811,7 +811,7 @@ export const CanvasViewport: React.FC = () => {
         window.removeEventListener('pointerup', onUp);
         setPreviewDrawing(null);
         if (points.length >= 2) {
-          void window.maestri.drawing.create(workspace.id, { ...base, points });
+          void window.orkestrei.drawing.create(workspace.id, { ...base, points });
         }
       };
       window.addEventListener('pointermove', onMove);
@@ -988,7 +988,7 @@ export const CanvasViewport: React.FC = () => {
           </span>
           <button
             type="button"
-            onClick={() => void window.maestri.group.create(workspace.id, selectedArray)}
+            onClick={() => void window.orkestrei.group.create(workspace.id, selectedArray)}
             className="flex items-center gap-1 rounded-lg px-2 py-1 hover:bg-[var(--bg-hover)]"
           >
             <Layers className="size-3.5" />
@@ -1008,7 +1008,7 @@ export const CanvasViewport: React.FC = () => {
             <button
               type="button"
               onClick={() =>
-                void window.maestri.connection.connectNodes(
+                void window.orkestrei.connection.connectNodes(
                   workspace.id,
                   selectedArray[0],
                   selectedArray[1]
@@ -1023,7 +1023,7 @@ export const CanvasViewport: React.FC = () => {
           <button
             type="button"
             onClick={() => {
-              void window.maestri.node.deleteMany(workspace.id, selectedArray);
+              void window.orkestrei.node.deleteMany(workspace.id, selectedArray);
               setSelectedIds(new Set());
             }}
             className="flex items-center gap-1 rounded-lg px-2 py-1 text-[var(--destructive)] hover:bg-[var(--destructive)]/15"

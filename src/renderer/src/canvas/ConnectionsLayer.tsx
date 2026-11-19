@@ -517,7 +517,7 @@ export const ConnectionsLayer: React.FC = () => {
               onMouseLeave={() => setHoveredTieId(null)}
               onDoubleClick={(e) => {
                 e.stopPropagation();
-                if (workspace) void window.maestri.cableTie.delete(workspace.id, tie.id);
+                if (workspace) void window.orkestrei.cableTie.delete(workspace.id, tie.id);
               }}
             >
               <rect
@@ -579,7 +579,7 @@ export const ConnectionsLayer: React.FC = () => {
           <button
             type="button"
             onClick={() => {
-              void window.maestri.connection.delete(workspace.id, ropePopover.connectionId);
+              void window.orkestrei.connection.delete(workspace.id, ropePopover.connectionId);
               setRopePopover(null);
             }}
             className="ml-2 inline-flex items-center gap-1 rounded-lg bg-[var(--destructive)]/15 px-2 py-1 text-[11px] font-medium text-[var(--destructive)] hover:bg-[var(--destructive)]/25"

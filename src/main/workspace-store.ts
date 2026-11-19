@@ -65,6 +65,11 @@ const execFileAsync = promisify(execFile);
 interface UndoSnapshot {
   levelFloorId: string | null;
   contents: CanvasLevelContents;
+  crossFloorConnections?: CrossFloorConnection[];
+  secondaryLevel?: {
+    levelFloorId: string | null;
+    contents: CanvasLevelContents;
+  };
 }
 
 export class WorkspaceStore {
@@ -257,7 +262,7 @@ export class WorkspaceStore {
         id: newId(),
         name: 'Maestro Architect',
         prompt:
-          'You coordinate the team on the Orkestrei canvas. Run `maestri list` to inspect teammates, notes, and portals. Break tasks down, recruit specialists with `maestri recruit`, wire them with `maestri connect`, and delegate via `maestri ask`.',
+          'You coordinate the team on the Orkestrei canvas. Run `orkestrei list` to inspect teammates, notes, and portals. Break tasks down, recruit specialists with `orkestrei recruit`, wire them with `orkestrei connect`, and delegate via `orkestrei ask`.',
         scope: 'global',
         workspaceId: null,
         icon: 'crown',
@@ -268,7 +273,7 @@ export class WorkspaceStore {
         id: newId(),
         name: 'Implementer',
         prompt:
-          'You implement clean, well-tested code changes in the workspace. Run `maestri list` to discover teammates and shared notes. Report back to the Maestro via `maestri ask` when done.',
+          'You implement clean, well-tested code changes in the workspace. Run `orkestrei list` to discover teammates and shared notes. Report back to the Maestro via `orkestrei ask` when done.',
         scope: 'global',
         workspaceId: null,
         icon: 'hammer',
@@ -279,7 +284,7 @@ export class WorkspaceStore {
         id: newId(),
         name: 'Code Reviewer',
         prompt:
-          'Review diffs and implementation details for correctness, edge cases, and security. Never edit files without approval — respond with clear, actionable findings. Run `maestri list` to see connected notes and peers.',
+          'Review diffs and implementation details for correctness, edge cases, and security. Never edit files without approval — respond with clear, actionable findings. Run `orkestrei list` to see connected notes and peers.',
         scope: 'global',
         workspaceId: null,
         icon: 'shield',
@@ -401,7 +406,7 @@ export class WorkspaceStore {
                 customColor: null,
                 isContentLocked: false,
                 fontFamily: null,
-                text: '# Architecture Spec\n\n- Goal: Coordinate changes cleanly\n- Run `maestri list` to inspect teammates\n- Use `maestri ask "Name" "task"` to delegate',
+                text: '# Architecture Spec\n\n- Goal: Coordinate changes cleanly\n- Run `orkestrei list` to inspect teammates\n- Use `orkestrei ask "Name" "task"` to delegate',
                 storageMode: { kind: 'managed' },
               },
             },
@@ -496,7 +501,7 @@ export class WorkspaceStore {
       },
     };
 
-    const noteContent = `# Guia Rápido do Orkestrei\n\nVocê está no Canvas Espacial de Orquestração.\n\n### Comandos disponíveis em qualquer terminal:\n- \`maestri list\` — Lista colegas, notas e portais conectados\n- \`maestri ask "Builder" "echo Ola do Maestro"\` — Envia prompt para outro terminal ligado por corda\n- \`maestri check "Builder"\` — Lê a tela atual do terminal conectado\n- \`maestri recruit "Reviewer" --role "Code Reviewer"\` — Cria um novo agente já ligado a você\n- \`maestri note read "Guia Rápido do Orkestrei"\` — Lê esta nota\n\nUse a ferramenta **Connect (C)** ou arraste das alças laterais para ligar nós com cordas físicas!`;
+    const noteContent = `# Guia Rápido do Orkestrei\n\nVocê está no Canvas Espacial de Orquestração.\n\n### Comandos disponíveis em qualquer terminal:\n- \`orkestrei list\` — Lista colegas, notas e portais conectados\n- \`orkestrei ask "Builder" "echo Ola do Maestro"\` — Envia prompt para outro terminal ligado por corda\n- \`orkestrei check "Builder"\` — Lê a tela atual do terminal conectado\n- \`orkestrei recruit "Reviewer" --role "Code Reviewer"\` — Cria um novo agente já ligado a você\n- \`orkestrei note read "Guia Rápido do Orkestrei"\` — Lê esta nota\n\nUse a ferramenta **Connect (C)** ou arraste das alças laterais para ligar nós com cordas físicas!`;
 
     await this.writeNoteFile(ws.id, 'Guia Rápido do Orkestrei.md', noteContent);
 
@@ -1029,26 +1034,50 @@ export class WorkspaceStore {
     return { ...ws, floors };
   }
 
-  private pushUndo(ws: Workspace, floorId: string | null): void {
+  private cloneLevelContents(current: CanvasLevelContents): CanvasLevelContents {
+    return structuredClone({
+      nodes: current.nodes,
+      drawings: current.drawings,
+      groups: current.groups,
+      connections: current.connections,
+      noteConnections: current.noteConnections,
+      noteToNoteConnections: current.noteToNoteConnections,
+      portalConnections: current.portalConnections,
+      portalToPortalConnections: current.portalToPortalConnections,
+      cableTies: current.cableTies,
+    });
+  }
+
+  private pushUndo(
+    ws: Workspace,
+    floorId: string | null,
+    extra?: {
+      crossFloorConnections?: CrossFloorConnection[];
+      secondaryLevel?: {
+        levelFloorId: string | null;
+        contents: CanvasLevelContents;
+      };
+    }
+  ): void {
     if (this.undoGroupDepth > 0 && this.undoGroupPushed) return;
     if (this.undoGroupDepth > 0) this.undoGroupPushed = true;
     const key = `${ws.id}:${floorId ?? 'ground'}`;
     const stack = this.undoStacks.get(key) ?? [];
     const current = this.getLevelContents(ws, floorId);
-    stack.push({
+    const snap: UndoSnapshot = {
       levelFloorId: floorId,
-      contents: structuredClone({
-        nodes: current.nodes,
-        drawings: current.drawings,
-        groups: current.groups,
-        connections: current.connections,
-        noteConnections: current.noteConnections,
-        noteToNoteConnections: current.noteToNoteConnections,
-        portalConnections: current.portalConnections,
-        portalToPortalConnections: current.portalToPortalConnections,
-        cableTies: current.cableTies,
-      }),
-    });
+      contents: this.cloneLevelContents(current),
+    };
+    if (extra?.secondaryLevel) {
+      snap.secondaryLevel = {
+        levelFloorId: extra.secondaryLevel.levelFloorId,
+        contents: this.cloneLevelContents(extra.secondaryLevel.contents),
+      };
+    }
+    if (extra?.crossFloorConnections) {
+      snap.crossFloorConnections = structuredClone(extra.crossFloorConnections);
+    }
+    stack.push(snap);
     if (stack.length > 40) stack.shift();
     this.undoStacks.set(key, stack);
     this.redoStacks.set(key, []);
@@ -1074,23 +1103,33 @@ export class WorkspaceStore {
 
     const current = this.getLevelContents(ws, snap.levelFloorId);
     const redoStack = this.redoStacks.get(key) ?? [];
-    redoStack.push({
+    const redoSnap: UndoSnapshot = {
       levelFloorId: snap.levelFloorId,
-      contents: structuredClone({
-        nodes: current.nodes,
-        drawings: current.drawings,
-        groups: current.groups,
-        connections: current.connections,
-        noteConnections: current.noteConnections,
-        noteToNoteConnections: current.noteToNoteConnections,
-        portalConnections: current.portalConnections,
-        portalToPortalConnections: current.portalToPortalConnections,
-        cableTies: current.cableTies,
-      }),
-    });
+      contents: this.cloneLevelContents(current),
+    };
+    if (snap.secondaryLevel) {
+      const currentSecondary = this.getLevelContents(ws, snap.secondaryLevel.levelFloorId);
+      redoSnap.secondaryLevel = {
+        levelFloorId: snap.secondaryLevel.levelFloorId,
+        contents: this.cloneLevelContents(currentSecondary),
+      };
+    }
+    if (snap.crossFloorConnections !== undefined) {
+      redoSnap.crossFloorConnections = structuredClone(ws.crossFloorConnections);
+    }
+    redoStack.push(redoSnap);
     this.redoStacks.set(key, redoStack);
 
-    const updated = this.mapLevel(ws, snap.levelFloorId, () => snap.contents);
+    let updated = this.mapLevel(ws, snap.levelFloorId, () => snap.contents);
+    if (snap.secondaryLevel) {
+      updated = this.mapLevel(updated, snap.secondaryLevel.levelFloorId, () => snap.secondaryLevel!.contents);
+    }
+    if (snap.crossFloorConnections !== undefined) {
+      updated = {
+        ...updated,
+        crossFloorConnections: structuredClone(snap.crossFloorConnections),
+      };
+    }
     await this.commitWorkspace(updated);
     return true;
   }
@@ -1105,23 +1144,33 @@ export class WorkspaceStore {
 
     const current = this.getLevelContents(ws, snap.levelFloorId);
     const undoStack = this.undoStacks.get(key) ?? [];
-    undoStack.push({
+    const undoSnap: UndoSnapshot = {
       levelFloorId: snap.levelFloorId,
-      contents: structuredClone({
-        nodes: current.nodes,
-        drawings: current.drawings,
-        groups: current.groups,
-        connections: current.connections,
-        noteConnections: current.noteConnections,
-        noteToNoteConnections: current.noteToNoteConnections,
-        portalConnections: current.portalConnections,
-        portalToPortalConnections: current.portalToPortalConnections,
-        cableTies: current.cableTies,
-      }),
-    });
+      contents: this.cloneLevelContents(current),
+    };
+    if (snap.secondaryLevel) {
+      const currentSecondary = this.getLevelContents(ws, snap.secondaryLevel.levelFloorId);
+      undoSnap.secondaryLevel = {
+        levelFloorId: snap.secondaryLevel.levelFloorId,
+        contents: this.cloneLevelContents(currentSecondary),
+      };
+    }
+    if (snap.crossFloorConnections !== undefined) {
+      undoSnap.crossFloorConnections = structuredClone(ws.crossFloorConnections);
+    }
+    undoStack.push(undoSnap);
     this.undoStacks.set(key, undoStack);
 
-    const updated = this.mapLevel(ws, snap.levelFloorId, () => snap.contents);
+    let updated = this.mapLevel(ws, snap.levelFloorId, () => snap.contents);
+    if (snap.secondaryLevel) {
+      updated = this.mapLevel(updated, snap.secondaryLevel.levelFloorId, () => snap.secondaryLevel!.contents);
+    }
+    if (snap.crossFloorConnections !== undefined) {
+      updated = {
+        ...updated,
+        crossFloorConnections: structuredClone(snap.crossFloorConnections),
+      };
+    }
     await this.commitWorkspace(updated);
     return true;
   }
@@ -1151,7 +1200,7 @@ export class WorkspaceStore {
       const isGit = await this.isGitRepo(ws.workingDirectory);
       if (isGit) {
         groundBranch = await this.getGitBranch(ws.workingDirectory);
-        const floorsRoot = path.join(ws.workingDirectory, '.maestri', 'floors');
+        const floorsRoot = path.join(ws.workingDirectory, '.orkestrei', 'floors');
         await ensureDir(floorsRoot);
         const worktreeDir = path.join(floorsRoot, slugifyBranch(name));
         try {
@@ -1476,7 +1525,7 @@ export class WorkspaceStore {
       if (line.length < 4) return false;
       const status = line.slice(0, 2);
       const file = line.slice(3).trim().replace(/^"|"$/g, '');
-      if (status === '??' && (file === '.maestri' || file.startsWith('.maestri/'))) {
+      if (status === '??' && (file === '.orkestrei' || file.startsWith('.orkestrei/'))) {
         return false;
       }
       return true;
@@ -2198,8 +2247,16 @@ export class WorkspaceStore {
 
     this.pushUndo(ws, loc.floorId);
 
+    // Identify removed cross-floor connections to include their IDs in cableTies cleanup (B1)
+    const removedCrossFloorIds = new Set<string>();
+    for (const c of ws.crossFloorConnections) {
+      if (matchesTarget(c.terminalIdA) || matchesTarget(c.terminalIdB)) {
+        removedCrossFloorIds.add(c.id.toLowerCase());
+      }
+    }
+
     const filterLvl = (lvl: CanvasLevelContents): CanvasLevelContents => {
-      const removedIds = new Set<string>();
+      const removedIds = new Set<string>(removedCrossFloorIds);
       for (const c of lvl.connections) {
         if (matchesTarget(c.terminalIdA) || matchesTarget(c.terminalIdB)) removedIds.add(c.id.toLowerCase());
       }
@@ -2241,6 +2298,30 @@ export class WorkspaceStore {
       };
     };
 
+    // Remove mirror edges in remote workspaces (C1)
+    const removedCrossWsConnections = ws.crossWorkspaceConnections.filter(
+      (c) => matchesTarget(c.localTerminalId) || matchesTarget(c.connectorNodeId)
+    );
+    for (const conn of removedCrossWsConnections) {
+      const remoteWs = this.getWorkspace(conn.remoteWorkspaceId);
+      if (remoteWs) {
+        const nextRemoteConns = remoteWs.crossWorkspaceConnections.filter(
+          (rc) =>
+            !idsEqual(rc.id, conn.id) &&
+            !(
+              idsEqual(rc.remoteWorkspaceId, ws.id) &&
+              (matchesTarget(rc.remoteTerminalId) || idsEqual(rc.localTerminalId, conn.remoteTerminalId))
+            )
+        );
+        if (nextRemoteConns.length !== remoteWs.crossWorkspaceConnections.length) {
+          await this.commitWorkspace({
+            ...remoteWs,
+            crossWorkspaceConnections: nextRemoteConns,
+          });
+        }
+      }
+    }
+
     const updated: Workspace = {
       ...ws,
       ...filterLvl(ws),
@@ -2253,6 +2334,143 @@ export class WorkspaceStore {
       ),
     };
     return this.commitWorkspace(updated);
+  }
+
+  /**
+   * Removes every connection (rope) between two specific nodes, in any level and across floors.
+   * Accepts node ids or terminal ids for either end. Returns how many connections were removed.
+   */
+  async disconnectNodes(
+    workspaceId: string,
+    fromId: string,
+    toId: string
+  ): Promise<{ ok: true; removed: number } | { ok: false; error: string }> {
+    const ws = this.getWorkspace(workspaceId);
+    if (!ws) return { ok: false, error: 'Workspace not found' };
+    const locA = this.findNodeOrTerminal(ws, fromId);
+    const locB = this.findNodeOrTerminal(ws, toId);
+    if (!locA || !locB) return { ok: false, error: 'Source or target node not found' };
+
+    const idSet = (loc: NonNullable<typeof locA>) => {
+      const s = new Set<string>([loc.node.id.toLowerCase()]);
+      if (loc.node.content.kind === 'terminal') s.add(loc.node.content.terminal.id.toLowerCase());
+      return s;
+    };
+    const setA = idSet(locA);
+    const setB = idSet(locB);
+    const between = (x: string, y: string) =>
+      (setA.has(x.toLowerCase()) && setB.has(y.toLowerCase())) ||
+      (setA.has(y.toLowerCase()) && setB.has(x.toLowerCase()));
+
+    const removedIds = new Set<string>();
+    const collect = (lvl: CanvasLevelContents) => {
+      for (const c of lvl.connections) if (between(c.terminalIdA, c.terminalIdB)) removedIds.add(c.id.toLowerCase());
+      for (const c of lvl.noteConnections) if (between(c.terminalId, c.noteNodeId)) removedIds.add(c.id.toLowerCase());
+      for (const c of lvl.noteToNoteConnections) if (between(c.noteNodeIdA, c.noteNodeIdB)) removedIds.add(c.id.toLowerCase());
+      for (const c of lvl.portalConnections) if (between(c.terminalId, c.portalNodeId)) removedIds.add(c.id.toLowerCase());
+      for (const c of lvl.portalToPortalConnections) if (between(c.portalNodeIdA, c.portalNodeIdB)) removedIds.add(c.id.toLowerCase());
+    };
+    collect(ws);
+    for (const f of ws.floors) collect(f);
+    for (const c of ws.crossFloorConnections) if (between(c.terminalIdA, c.terminalIdB)) removedIds.add(c.id.toLowerCase());
+
+    if (removedIds.size === 0) return { ok: true, removed: 0 };
+
+    const keep = (c: { id: string }) => !removedIds.has(c.id.toLowerCase());
+    const hasCrossFloor = ws.crossFloorConnections.some((c) => removedIds.has(c.id.toLowerCase()));
+    const differentFloors = !sameFloor(locA.floorId, locB.floorId);
+
+    const targetFloorId =
+      sameFloor(ws.activeFloorId, locA.floorId) || sameFloor(ws.activeFloorId, locB.floorId)
+        ? ws.activeFloorId
+        : locA.floorId;
+
+    const extra: {
+      crossFloorConnections?: CrossFloorConnection[];
+      secondaryLevel?: {
+        levelFloorId: string | null;
+        contents: CanvasLevelContents;
+      };
+    } = {};
+
+    if (hasCrossFloor) {
+      extra.crossFloorConnections = ws.crossFloorConnections;
+    }
+    if (differentFloors) {
+      const otherFloorId = sameFloor(targetFloorId, locA.floorId) ? locB.floorId : locA.floorId;
+      extra.secondaryLevel = {
+        levelFloorId: otherFloorId,
+        contents: this.getLevelContents(ws, otherFloorId),
+      };
+    }
+
+    this.pushUndo(
+      ws,
+      targetFloorId,
+      hasCrossFloor || differentFloors ? extra : undefined
+    );
+    const filterLvl = (lvl: CanvasLevelContents): CanvasLevelContents => ({
+      ...lvl,
+      connections: lvl.connections.filter(keep),
+      noteConnections: lvl.noteConnections.filter(keep),
+      noteToNoteConnections: lvl.noteToNoteConnections.filter(keep),
+      portalConnections: lvl.portalConnections.filter(keep),
+      portalToPortalConnections: lvl.portalToPortalConnections.filter(keep),
+      cableTies: lvl.cableTies
+        .map((t) => ({
+          ...t,
+          memberRopeIds: t.memberRopeIds.filter((rid) => !removedIds.has(rid.toLowerCase())),
+        }))
+        .filter((t) => t.memberRopeIds.length >= 2),
+    });
+    await this.commitWorkspace({
+      ...ws,
+      ...filterLvl(ws),
+      floors: ws.floors.map((f) => ({ ...f, ...filterLvl(f) })),
+      crossFloorConnections: ws.crossFloorConnections.filter(keep),
+    });
+    return { ok: true, removed: removedIds.size };
+  }
+
+  /**
+   * Removes the cross-workspace connection between two terminals from both workspaces.
+   * Note (A3): Consistent with connectAcrossWorkspaces, cross-workspace operations do not create
+   * undo snapshots because they mutate two distinct workspace files across persistence boundaries.
+   */
+  async disconnectAcrossWorkspaces(
+    workspaceAId: string,
+    terminalAId: string,
+    workspaceBId: string,
+    terminalBId: string
+  ): Promise<{ ok: true; removed: number } | { ok: false; error: string }> {
+    if (idsEqual(workspaceAId, workspaceBId)) {
+      return this.disconnectNodes(workspaceAId, terminalAId, terminalBId);
+    }
+    const wsA = this.getWorkspace(workspaceAId);
+    const wsB = this.getWorkspace(workspaceBId);
+    if (!wsA || !wsB) return { ok: false, error: 'Workspace not found' };
+    const foundA = this.findTerminal(wsA, terminalAId);
+    const foundB = this.findTerminal(wsB, terminalBId);
+    if (!foundA || !foundB) return { ok: false, error: 'Terminal not found' };
+
+    let removed = 0;
+    const strip = async (ws: Workspace, localTerm: string, remoteWs: string, remoteTerm: string) => {
+      const fresh = this.getWorkspace(ws.id) ?? ws;
+      const next = fresh.crossWorkspaceConnections.filter(
+        (c) =>
+          !(
+            idsEqual(c.localTerminalId, localTerm) &&
+            idsEqual(c.remoteWorkspaceId, remoteWs) &&
+            idsEqual(c.remoteTerminalId, remoteTerm)
+          )
+      );
+      if (next.length === fresh.crossWorkspaceConnections.length) return;
+      removed += fresh.crossWorkspaceConnections.length - next.length;
+      await this.commitWorkspace({ ...fresh, crossWorkspaceConnections: next });
+    };
+    await strip(wsA, foundA.terminal.id, wsB.id, foundB.terminal.id);
+    await strip(wsB, foundB.terminal.id, wsA.id, foundA.terminal.id);
+    return { ok: true, removed: removed > 0 ? 1 : 0 };
   }
 
   async connectAcrossWorkspaces(
@@ -3042,7 +3260,7 @@ export class WorkspaceStore {
     return null;
   }
 
-  // Team Graph & Reachability (Exact Maestri Graph Semantics)
+  // Team Graph & Reachability
   private buildBandExpansion(ws: Workspace): {
     bandsById: Map<string, { node: CanvasNode; band: BandData; memberTermIds: string[]; floorId: string | null }>;
     termToBands: Map<string, string[]>;

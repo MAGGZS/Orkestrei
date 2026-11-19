@@ -52,7 +52,7 @@ function renderInline(line: string, keyPrefix: string): React.ReactNode[] {
             type="button"
             onClick={(e) => {
               e.stopPropagation();
-              void window.maestri.app.openExternal(href);
+              void window.orkestrei.app.openExternal(href);
             }}
             className="underline decoration-current/50 underline-offset-2 hover:opacity-80"
           >

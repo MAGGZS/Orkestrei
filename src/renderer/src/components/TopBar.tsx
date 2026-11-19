@@ -106,7 +106,7 @@ export const TopBar: React.FC = () => {
   const toggleSidebar = () => {
     const next = !appState.sidebarOpen;
     setAppState((prev) => ({ ...prev, sidebarOpen: next }));
-    void window.maestri.appState.update({ sidebarOpen: next });
+    void window.orkestrei.appState.update({ sidebarOpen: next });
   };
 
   const openUtilitySheet = (nextSheet: Parameters<typeof setSheet>[0]) => {
@@ -139,7 +139,7 @@ export const TopBar: React.FC = () => {
       cursorX += n.frame.width + 48;
       rowMaxH = Math.max(rowMaxH, n.frame.height);
     }
-    await window.maestri.node.patchFrames(workspace.id, patches);
+    await window.orkestrei.node.patchFrames(workspace.id, patches);
     setOffset({ x: 0, y: 0 });
   };
 
@@ -216,7 +216,7 @@ export const TopBar: React.FC = () => {
                       type="button"
                       onClick={() => {
                         setShowFloorMenu(false);
-                        void window.maestri.floor.switch(workspace.id, null, {
+                        void window.orkestrei.floor.switch(workspace.id, null, {
                           origin: offsetFrom(workspace),
                           zoom,
                         });
@@ -238,7 +238,7 @@ export const TopBar: React.FC = () => {
                         type="button"
                         onClick={() => {
                           setShowFloorMenu(false);
-                          void window.maestri.floor.switch(workspace.id, f.id);
+                          void window.orkestrei.floor.switch(workspace.id, f.id);
                         }}
                         className={`flex w-full items-center justify-between rounded-md px-2.5 py-1.5 text-left transition-colors hover:bg-[var(--bg-hover)] ${
                           workspace.activeFloorId === f.id
@@ -271,7 +271,7 @@ export const TopBar: React.FC = () => {
           </div>
         </div>
 
-        {/* Center floating MainToolbar (icon-only, Maestri style) */}
+        {/* Center floating MainToolbar (icon-only, Orkestrei style) */}
         <div className="titlebar-no-drag pointer-events-auto glass flex h-9 items-center gap-0.5 rounded-full p-1">
           {toolBtn('select', <MousePointer2 className="size-4" />, 'Select', 'V')}
           {toolBtn('pan', <Hand className="size-4" />, 'Pan', 'H')}
@@ -486,7 +486,7 @@ export const TopBar: React.FC = () => {
           <div className="glass flex h-9 items-center gap-0.5 rounded-full p-1">
             <button
               type="button"
-              onClick={() => void window.maestri.windowControls.minimize()}
+              onClick={() => void window.orkestrei.windowControls.minimize()}
               title="Minimize"
               className="flex size-7 items-center justify-center rounded-full text-[var(--muted-foreground)] transition-colors hover:bg-[var(--bg-hover)] hover:text-[var(--foreground)]"
             >
@@ -494,7 +494,7 @@ export const TopBar: React.FC = () => {
             </button>
             <button
               type="button"
-              onClick={() => void window.maestri.windowControls.toggleMaximize()}
+              onClick={() => void window.orkestrei.windowControls.toggleMaximize()}
               title="Maximize"
               className="flex size-7 items-center justify-center rounded-full text-[var(--muted-foreground)] transition-colors hover:bg-[var(--bg-hover)] hover:text-[var(--foreground)]"
             >
@@ -502,7 +502,7 @@ export const TopBar: React.FC = () => {
             </button>
             <button
               type="button"
-              onClick={() => void window.maestri.windowControls.close()}
+              onClick={() => void window.orkestrei.windowControls.close()}
               title="Close"
               className="flex size-7 items-center justify-center rounded-full text-[var(--muted-foreground)] transition-colors hover:bg-[var(--destructive)] hover:text-white"
             >
@@ -518,7 +518,7 @@ export const TopBar: React.FC = () => {
           providers={allUsageProviders}
           anchorRef={agentUsageTriggerRef}
           onClose={() => setShowAgentUsage(false)}
-          onRefresh={(id) => window.maestri.agentUsage.refresh(id)}
+          onRefresh={(id) => window.orkestrei.agentUsage.refresh(id)}
         />
       )}
     </>

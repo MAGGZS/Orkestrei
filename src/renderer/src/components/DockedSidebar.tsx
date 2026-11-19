@@ -62,7 +62,7 @@ export const DockedSidebar: React.FC = () => {
     return (
       <div key={ws.id} className="space-y-0.5">
         <div
-          onClick={() => void window.maestri.workspace.switch(ws.id)}
+          onClick={() => void window.orkestrei.workspace.switch(ws.id)}
           title={ws.workingDirectory}
           className={`group flex h-8 cursor-pointer items-center justify-between gap-2 rounded-lg px-2 transition-colors ${
             isActive
@@ -80,7 +80,7 @@ export const DockedSidebar: React.FC = () => {
               type="button"
               onClick={(e) => {
                 e.stopPropagation();
-                void window.maestri.workspace.patch(ws.id, { isPinned: !ws.isPinned });
+                void window.orkestrei.workspace.patch(ws.id, { isPinned: !ws.isPinned });
               }}
               title={ws.isPinned ? 'Unpin' : 'Pin workspace'}
               className={`rounded p-1 hover:bg-[var(--bg-hover)] ${
@@ -94,7 +94,7 @@ export const DockedSidebar: React.FC = () => {
                 type="button"
                 onClick={(e) => {
                   e.stopPropagation();
-                  void window.maestri.workspace.delete(ws.id);
+                  void window.orkestrei.workspace.delete(ws.id);
                 }}
                 title="Delete workspace"
                 className="rounded p-1 text-[var(--muted-foreground)] hover:text-[var(--destructive)]"
@@ -110,7 +110,7 @@ export const DockedSidebar: React.FC = () => {
           <div className="space-y-0.5 pl-4">
             <button
               type="button"
-              onClick={() => void window.maestri.floor.switch(ws.id, null)}
+              onClick={() => void window.orkestrei.floor.switch(ws.id, null)}
               className={`flex h-7 w-full items-center justify-between rounded-md px-2 text-left text-[12px] transition-colors ${
                 ws.activeFloorId === null
                   ? 'bg-white/[0.06] font-medium text-[var(--foreground)]'
@@ -136,7 +136,7 @@ export const DockedSidebar: React.FC = () => {
               return (
                 <div
                   key={floor.id}
-                  onClick={() => void window.maestri.floor.switch(ws.id, floor.id)}
+                  onClick={() => void window.orkestrei.floor.switch(ws.id, floor.id)}
                   className={`group/fl flex cursor-pointer flex-col rounded-md px-2 py-1 text-[12px] transition-colors ${
                     isFloorActive
                       ? 'bg-white/[0.06] font-medium text-[var(--foreground)]'
@@ -166,7 +166,7 @@ export const DockedSidebar: React.FC = () => {
                         type="button"
                         onClick={(e) => {
                           e.stopPropagation();
-                          void window.maestri.floor.delete(ws.id, floor.id);
+                          void window.orkestrei.floor.delete(ws.id, floor.id);
                         }}
                         title="Delete floor"
                         className="hidden rounded p-0.5 hover:text-[var(--destructive)] group-hover/fl:block"

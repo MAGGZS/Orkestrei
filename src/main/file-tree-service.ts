@@ -92,7 +92,7 @@ export class FileTreeService {
 
     const results: FileTreeEntry[] = [];
     for (const entry of entries) {
-      if (!showHidden && entry.name.startsWith('.') && entry.name !== '.maestri') continue;
+      if (!showHidden && entry.name.startsWith('.') && entry.name !== '.orkestrei') continue;
       if (entry.name === 'node_modules' || entry.name === '.git') continue;
       const fullPath = path.join(target, entry.name);
       const relPath = path.relative(rootPath, fullPath).replace(/\\/g, '/');

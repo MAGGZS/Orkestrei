@@ -29,9 +29,9 @@ async function runCli(
   const { stdout, stderr } = await execFileAsync(process.execPath, [cliPath, ...args], {
     env: {
       ...process.env,
-      MAESTRI_PIPE: pipeUrl,
-      MAESTRI_TERMINAL_ID: terminalId,
-      MAESTRI_TOKEN: authToken,
+      ORKESTREI_PIPE: pipeUrl,
+      ORKESTREI_TERMINAL_ID: terminalId,
+      ORKESTREI_TOKEN: authToken,
     },
     timeout: 30_000,
   });
@@ -117,14 +117,14 @@ async function main() {
   });
 
   try {
-    console.log('3. Testing `maestri list`...');
+    console.log('3. Testing `orkestrei list`...');
     const listOut = await runCli(cliPath, pipeUrl, maestroId, authToken, ['list']);
     console.log(listOut);
     assert(listOut.includes('Maestro'), 'list output must include Maestro');
     assert(listOut.includes('Builder'), 'list output must include Builder');
     assert(listOut.includes('Guia Rápido do Orkestrei'), 'list output must include starter note');
 
-    console.log('4. Testing `maestri role create`...');
+    console.log('4. Testing `orkestrei role create`...');
     const roleOut = await runCli(cliPath, pipeUrl, maestroId, authToken, [
       'role',
       'create',
@@ -134,7 +134,7 @@ async function main() {
     console.log(roleOut);
     assert(roleOut.includes('QA Engineer'), 'role create should acknowledge QA Engineer');
 
-    console.log('5. Testing `maestri recruit "Falcon" --role "QA Engineer"`...');
+    console.log('5. Testing `orkestrei recruit "Falcon" --role "QA Engineer"`...');
     const recruitOut = await runCli(cliPath, pipeUrl, maestroId, authToken, [
       'recruit',
       'Falcon',
@@ -151,7 +151,7 @@ async function main() {
     assert(falcon && falcon.content.kind === 'terminal', 'Falcon node must exist in store');
     assert(ptyManager.isRunning(falcon.content.terminal.id), 'Falcon PTY must be running');
 
-    console.log('6. Testing `maestri note create` with `--stack`...');
+    console.log('6. Testing `orkestrei note create` with `--stack`...');
     const noteOut = await runCli(cliPath, pipeUrl, maestroId, authToken, [
       'note',
       'create',
@@ -164,7 +164,7 @@ async function main() {
     console.log(noteOut);
     assert(noteOut.includes('Created note "sys-spec"'), 'note create should confirm sys-spec');
 
-    console.log('7. Testing `maestri connect "sys-spec" "Falcon"`...');
+    console.log('7. Testing `orkestrei connect "sys-spec" "Falcon"`...');
     const connOut = await runCli(cliPath, pipeUrl, maestroId, authToken, ['connect', 'sys-spec', 'Falcon']);
     console.log(connOut);
     assert(connOut.includes('Connected'), 'connect should link sys-spec and Falcon');
@@ -172,7 +172,7 @@ async function main() {
     // Allow PowerShell prompt to settle inside Falcon before delivering echo
     await new Promise((r) => setTimeout(r, 1500));
 
-    console.log('8. Testing `maestri ask "Falcon" "echo HELLO_FROM_FALCON_AGENT"`...');
+    console.log('8. Testing `orkestrei ask "Falcon" "echo HELLO_FROM_FALCON_AGENT"`...');
     const askOut = await runCli(cliPath, pipeUrl, maestroId, authToken, [
       'ask',
       'Falcon',
@@ -188,16 +188,16 @@ async function main() {
       'transferActive event must fire during ask'
     );
 
-    console.log('9. Testing `maestri check "Falcon"`...');
+    console.log('9. Testing `orkestrei check "Falcon"`...');
     const checkOut = await runCli(cliPath, pipeUrl, maestroId, authToken, ['check', 'Falcon']);
     assert(checkOut.includes('HELLO_FROM_FALCON_AGENT'), 'check should read Falcon screen');
 
-    console.log('10. Testing `maestri band create "Core Squad"`...');
+    console.log('10. Testing `orkestrei band create "Core Squad"`...');
     const bandOut = await runCli(cliPath, pipeUrl, maestroId, authToken, ['band', 'create', 'Core Squad']);
     console.log(bandOut);
     assert(bandOut.includes('Created band "Core Squad"'), 'band create should succeed');
 
-    console.log('11. Testing `maestri floor status`...');
+    console.log('11. Testing `orkestrei floor status`...');
     const statusOut = await runCli(cliPath, pipeUrl, maestroId, authToken, [
       'floor',
       'status',
@@ -293,7 +293,69 @@ async function main() {
       'cross-workspace ask to ApiBot @ BackendSvc must echo CROSS_WS_OK'
     );
 
-    console.log('\nALL END-TO-END ORCHESTRATION CHECKS PASSED (1-13)!');
+    console.log('14. Testing `orkestrei disconnect` (pair, --all, cross-floor, cross-workspace)...');
+    // Disconnect sys-spec and Falcon (connected in step 7)
+    const discPairOut = await runCli(cliPath, pipeUrl, maestroId, authToken, [
+      'disconnect',
+      'sys-spec',
+      'Falcon',
+    ]);
+    console.log(discPairOut);
+    assert(discPairOut.includes('Disconnected "sys-spec" ↮ "Falcon"'), 'disconnect should remove note connection');
+
+    // Disconnect again should fail since connection was already removed
+    let discAgainFailed = false;
+    try {
+      await runCli(cliPath, pipeUrl, maestroId, authToken, ['disconnect', 'sys-spec', 'Falcon']);
+    } catch {
+      discAgainFailed = true;
+    }
+    assert(discAgainFailed, 'disconnecting already-disconnected nodes should fail');
+
+    // Disconnect cross-workspace: me and ApiBot @ BackendSvc
+    const discWsOut = await runCli(cliPath, pipeUrl, maestroId, authToken, [
+      'disconnect',
+      'me',
+      'ApiBot @ BackendSvc',
+    ]);
+    console.log(discWsOut);
+    assert(discWsOut.includes('Disconnected "me"'), 'disconnect cross-workspace should succeed');
+
+    // Test clear error for unknown remote target with @ (C2 fix verification)
+    let unknownRemoteError = '';
+    try {
+      await runCli(cliPath, pipeUrl, maestroId, authToken, [
+        'disconnect',
+        'me',
+        'Ghost @ NonExistentWs',
+      ]);
+    } catch (err: unknown) {
+      unknownRemoteError = err instanceof Error ? err.message : String(err);
+    }
+    assert(
+      unknownRemoteError.includes('Could not find remote agent or workspace'),
+      'disconnecting nonexistent remote agent should give clear error'
+    );
+
+    // Disconnect cross-floor: me and LabAgent
+    const discFloorOut = await runCli(cliPath, pipeUrl, maestroId, authToken, [
+      'disconnect',
+      'me',
+      'LabAgent',
+    ]);
+    console.log(discFloorOut);
+    assert(discFloorOut.includes('Disconnected "me" ↮ "LabAgent"'), 'disconnect cross-floor should succeed');
+
+    // Disconnect --all: remove every connection of Falcon
+    const discAllOut = await runCli(cliPath, pipeUrl, maestroId, authToken, [
+      'disconnect',
+      'Falcon',
+      '--all',
+    ]);
+    console.log(discAllOut);
+    assert(discAllOut.includes('Removed all connections of "Falcon"'), 'disconnect --all should succeed');
+
+    console.log('\nALL END-TO-END ORCHESTRATION CHECKS PASSED (1-14)!');
   } finally {
     routineScheduler.stop();
     ptyManager.terminateAll();

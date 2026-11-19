@@ -151,7 +151,7 @@ export class OrchestratorServer {
   }
 
   private isAuthorized(req: http.IncomingMessage): boolean {
-    const rawHeaderToken = req.headers['x-maestri-token'];
+    const rawHeaderToken = req.headers['x-orkestrei-token'];
     let candidate = Array.isArray(rawHeaderToken) ? rawHeaderToken[0] : rawHeaderToken;
     if (!candidate) {
       const rawAuth = req.headers.authorization;
@@ -187,7 +187,7 @@ export class OrchestratorServer {
     }
 
     if (!this.isAuthorized(req)) {
-      this.send(res, 401, 'Unauthorized: missing or invalid MAESTRI_TOKEN.');
+      this.send(res, 401, 'Unauthorized: missing or invalid ORKESTREI_TOKEN.');
       return;
     }
 
@@ -338,6 +338,93 @@ export class OrchestratorServer {
           return;
         }
         this.send(res, 200, `Connected "${fromName}" ↔ "${toName}".`);
+        return;
+      }
+
+      // DISCONNECT
+      if (method === 'POST' && pathname === '/disconnect') {
+        const fromName = String(json.from ?? '').trim();
+        const toName = String(json.to ?? '').trim();
+        const all = json.all === true;
+        if (!fromName) {
+          this.send(res, 400, 'Missing "from".');
+          return;
+        }
+
+        if (all) {
+          const id = this.resolveEntityId(workspace.id, fromTerminalId, fromName);
+          if (!id) {
+            this.send(res, 404, `Could not find "${fromName}" inside this workspace.`);
+            return;
+          }
+          await this.deps.store.disconnectAllForNode(workspace.id, id);
+          this.send(res, 200, `Removed all connections of "${fromName}".`);
+          return;
+        }
+
+        if (!toName) {
+          this.send(res, 400, 'Missing "to". Use --all to remove every connection of a node.');
+          return;
+        }
+
+        if (fromName.includes('@') || toName.includes('@')) {
+          const self = { workspaceId: workspace.id, workspaceName: workspace.name, terminalId: fromTerminalId };
+          const isSelf = (n: string) => n.toLowerCase() === 'me' || n.toLowerCase() === 'self';
+          const resA = isSelf(fromName) ? self : this.deps.store.resolveTargetTerminal(workspace, fromTerminalId, fromName);
+          const resB = isSelf(toName) ? self : this.deps.store.resolveTargetTerminal(workspace, fromTerminalId, toName);
+
+          if (!resA || !resB) {
+            this.send(
+              res,
+              404,
+              `Could not find remote agent or workspace for "${!resA ? fromName : toName}".`
+            );
+            return;
+          }
+
+          if (idsEqual(resA.workspaceId, resB.workspaceId)) {
+            this.send(
+              res,
+              400,
+              `Both "${fromName}" and "${toName}" belong to the same workspace ("${resA.workspaceName}"). Cross-workspace disconnect requires agents in different workspaces.`
+            );
+            return;
+          }
+
+          const crossRes = await this.deps.store.disconnectAcrossWorkspaces(
+            resA.workspaceId,
+            resA.terminalId,
+            resB.workspaceId,
+            resB.terminalId
+          );
+          if (!crossRes.ok) {
+            this.send(res, 400, crossRes.error);
+            return;
+          }
+          if (crossRes.removed === 0) {
+            this.send(res, 404, `No connection between "${fromName}" and "${toName}".`);
+            return;
+          }
+          this.send(res, 200, `Disconnected "${fromName}" (${resA.workspaceName}) ↮ "${toName}" (${resB.workspaceName}).`);
+          return;
+        }
+
+        const idA = this.resolveEntityId(workspace.id, fromTerminalId, fromName);
+        const idB = this.resolveEntityId(workspace.id, fromTerminalId, toName);
+        if (!idA || !idB) {
+          this.send(res, 404, `Could not find "${!idA ? fromName : toName}" inside this workspace.`);
+          return;
+        }
+        const resDisc = await this.deps.store.disconnectNodes(workspace.id, idA, idB);
+        if (!resDisc.ok) {
+          this.send(res, 400, resDisc.error);
+          return;
+        }
+        if (resDisc.removed === 0) {
+          this.send(res, 404, `No connection between "${fromName}" and "${toName}".`);
+          return;
+        }
+        this.send(res, 200, `Disconnected "${fromName}" ↮ "${toName}".`);
         return;
       }
 
@@ -574,7 +661,7 @@ export class OrchestratorServer {
     const target = this.deps.store.resolveTargetTerminal(ws, fromTerminalId, targetName);
     if (!target) return { status: 404, body: `Agent "${targetName}" not found` };
     if (!target.reachable) {
-      return { status: 403, body: `No connection to "${targetName}". Run maestri connect first.` };
+      return { status: 403, body: `No connection to "${targetName}". Run orkestrei connect first.` };
     }
 
     // Wake / spawn target terminal if unloaded or not yet running, then wait for shell boot readiness.

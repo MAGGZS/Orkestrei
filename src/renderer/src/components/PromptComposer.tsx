@@ -26,7 +26,7 @@ export interface SavePastedImageResponse {
   pendingMainIpc?: boolean;
 }
 
-interface MaestriBridgeWithPastedImage {
+interface OrkestreiBridgeWithPastedImage {
   terminal?: {
     savePastedImage?: (req: SavePastedImageRequest) => Promise<SavePastedImageResponse>;
   };
@@ -37,16 +37,16 @@ let notifiedMissingImageIpc = false;
 async function savePastedImageViaMainIpc(
   req: SavePastedImageRequest
 ): Promise<SavePastedImageResponse> {
-  const bridge = window.maestri as unknown as MaestriBridgeWithPastedImage;
+  const bridge = window.orkestrei as unknown as OrkestreiBridgeWithPastedImage;
   if (typeof bridge.terminal?.savePastedImage === 'function') {
     return bridge.terminal.savePastedImage(req);
   }
   // Typed stub: saving binary PNG files into workspace temp requires main/preload IPC
-  // `maestri:terminal:savePastedImage` (src/main/** is outside UI Dev scope).
+  // `orkestrei:terminal:savePastedImage` (src/main/** is outside UI Dev scope).
   return {
     ok: false,
     pendingMainIpc: true,
-    error: 'IPC maestri:terminal:savePastedImage not wired in main yet',
+    error: 'IPC orkestrei:terminal:savePastedImage not wired in main yet',
   };
 }
 
@@ -324,7 +324,7 @@ export const PromptComposer: React.FC<PromptComposerProps> = ({
     const wasClosed = mentionQuery === null;
     setMentionQuery(extracted);
     if (wasClosed || peers === null) {
-      void window.maestri.interAgent.listPeers(workspaceId, terminalId).then(setPeers);
+      void window.orkestrei.interAgent.listPeers(workspaceId, terminalId).then(setPeers);
     }
   };
 
@@ -413,7 +413,7 @@ export const PromptComposer: React.FC<PromptComposerProps> = ({
         if (res.pendingMainIpc && !notifiedMissingImageIpc) {
           notifiedMissingImageIpc = true;
           toast.info(
-            'Image preview attached; saving PNG to workspace temp requires main IPC maestri:terminal:savePastedImage.'
+            'Image preview attached; saving PNG to workspace temp requires main IPC orkestrei:terminal:savePastedImage.'
           );
         } else if (!res.ok && !res.pendingMainIpc && res.error) {
           toast.error(`Failed to save pasted image: ${res.error}`);
@@ -434,7 +434,7 @@ export const PromptComposer: React.FC<PromptComposerProps> = ({
     if (!trimmed && savedAttachments.length === 0) {
       if (unsavedAttachments.length > 0) {
         toast.warning(
-          'Pasted image is awaiting main IPC maestri:terminal:savePastedImage before it can be sent as a file path.'
+          'Pasted image is awaiting main IPC orkestrei:terminal:savePastedImage before it can be sent as a file path.'
         );
       }
       return;
@@ -536,7 +536,7 @@ export const PromptComposer: React.FC<PromptComposerProps> = ({
               <button
                 type="button"
                 onClick={async () => {
-                  await window.maestri.savedPrompts.save({
+                  await window.orkestrei.savedPrompts.save({
                     title: newPromptTitle.trim() || draft.trim().slice(0, 28),
                     prompt: draft.trim(),
                   });
@@ -575,7 +575,7 @@ export const PromptComposer: React.FC<PromptComposerProps> = ({
                   </button>
                   <button
                     type="button"
-                    onClick={() => void window.maestri.savedPrompts.delete(sp.id)}
+                    onClick={() => void window.orkestrei.savedPrompts.delete(sp.id)}
                     className="p-0.5 text-[var(--muted-foreground)] hover:text-[var(--destructive)]"
                     title="Delete prompt"
                   >
@@ -597,7 +597,7 @@ export const PromptComposer: React.FC<PromptComposerProps> = ({
                 title={
                   att.filePath
                     ? att.filePath
-                    : att.error || 'Pending main IPC maestri:terminal:savePastedImage'
+                    : att.error || 'Pending main IPC orkestrei:terminal:savePastedImage'
                 }
                 className={`flex h-6 items-center gap-1.5 rounded-[5px] border px-1.5 text-[11px] ${
                   att.pendingMainIpc

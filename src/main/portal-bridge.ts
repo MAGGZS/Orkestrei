@@ -56,7 +56,7 @@ const SNAPSHOT_SCRIPT = `(() => {
     const focused = document.activeElement === el ? ' *focused*' : '';
     const coords = '[' + Math.round(rect.left) + ',' + Math.round(rect.top) + ' ' + Math.round(rect.width) + 'x' + Math.round(rect.height) + ']';
     const css = escapeCss(el);
-    el.setAttribute('data-maestri-ref', ref);
+    el.setAttribute('data-orkestrei-ref', ref);
     interactive.push({
       ref,
       css,
@@ -137,7 +137,7 @@ export class PortalBridge {
     if (clean.startsWith('@e')) {
       const css = reg?.refSelectors.get(clean);
       return `(() => {
-        return document.querySelector('[data-maestri-ref=' + ${JSON.stringify(clean)} + ']') || ${css ? `document.querySelector(${JSON.stringify(css)})` : 'null'};
+        return document.querySelector('[data-orkestrei-ref=' + ${JSON.stringify(clean)} + ']') || ${css ? `document.querySelector(${JSON.stringify(css)})` : 'null'};
       })()`;
     }
     if (/^\d+\s*,\s*\d+$/.test(clean)) {

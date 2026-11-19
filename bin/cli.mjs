@@ -3,9 +3,9 @@ import fs from 'node:fs';
 import http from 'node:http';
 import path from 'node:path';
 
-const pipeUrl = process.env.MAESTRI_PIPE || process.env.ORKESTREI_PIPE || '';
-const terminalId = process.env.MAESTRI_TERMINAL_ID || '';
-const authToken = process.env.MAESTRI_TOKEN || '';
+const pipeUrl = process.env.ORKESTREI_PIPE || '';
+const terminalId = process.env.ORKESTREI_TERMINAL_ID || '';
+const authToken = process.env.ORKESTREI_TOKEN || '';
 
 const BOOLEAN_FLAGS = new Set([
   'raw',
@@ -23,10 +23,11 @@ const BOOLEAN_FLAGS = new Set([
   'no-skip-if-busy',
   'no-notify',
   'disabled',
+  'all',
 ]);
 
 function fail(msg, code = 1) {
-  process.stderr.write(`maestri: error: ${msg}\n`);
+  process.stderr.write(`orkestrei: error: ${msg}\n`);
   process.exit(code);
 }
 
@@ -67,17 +68,17 @@ function parseFlags(args) {
 
 function request(method, pathname, body) {
   if (!pipeUrl) {
-    fail('only available inside Orkestrei/Maestri terminals (MAESTRI_PIPE not set).');
+    fail('only available inside Orkestrei terminals (ORKESTREI_PIPE not set).');
   }
   if (!terminalId) {
-    fail('MAESTRI_TERMINAL_ID is not set.');
+    fail('ORKESTREI_TERMINAL_ID is not set.');
   }
   return new Promise((resolve, reject) => {
     const target = new URL(pathname, pipeUrl);
     const data = body === undefined ? null : JSON.stringify(body);
     const headers = {
       'X-Terminal-ID': terminalId,
-      ...(authToken ? { Authorization: `Bearer ${authToken}`, 'X-Maestri-Token': authToken } : {}),
+      ...(authToken ? { Authorization: `Bearer ${authToken}`, 'X-Orkestrei-Token': authToken } : {}),
       ...(data !== null
         ? {
             'Content-Type': 'application/json; charset=utf-8',
@@ -116,47 +117,48 @@ async function readStdin() {
 }
 
 function printHelp() {
-  process.stdout.write(`Orkestrei / Maestri Local Orchestration CLI
+  process.stdout.write(`Orkestrei Local Orchestration CLI
 
 Usage:
-  maestri list [--json]
-  maestri ask "Agent" "prompt" [--raw] [--timeout 120]
-  maestri ask --batch '{"Agent A": "prompt", "Agent B": "prompt"}'
-  maestri check "Agent"
-  maestri notify "message"
+  orkestrei list [--json]
+  orkestrei ask "Agent" "prompt" [--raw] [--timeout 120]
+  orkestrei ask --batch '{"Agent A": "prompt", "Agent B": "prompt"}'
+  orkestrei check "Agent"
+  orkestrei notify "message"
 
 Team & Canvas:
-  maestri recruit "Name" [--preset P] [--role R] [--floor F] [--workspace W] [--dir D] [--command C] [--icon I] [--color C] [--band B] [--replace Old]
-  maestri dismiss "Name"
-  maestri connect "From" "To"
-  maestri arrange "Name" [--name N] [--icon I] [--color C]
-  maestri band create "Band" ["Agent" ...] [--without-me] [--icon I] [--color C]
-  maestri band add|remove|dissolve "Band" ["Agent"]
+  orkestrei recruit "Name" [--preset P] [--role R] [--floor F] [--workspace W] [--dir D] [--command C] [--icon I] [--color C] [--band B] [--replace Old]
+  orkestrei dismiss "Name"
+  orkestrei connect "From" "To"
+  orkestrei disconnect "From" "To" | disconnect "Name" --all
+  orkestrei arrange "Name" [--name N] [--icon I] [--color C]
+  orkestrei band create "Band" ["Agent" ...] [--without-me] [--icon I] [--color C]
+  orkestrei band add|remove|dissolve "Band" ["Agent"]
 
 Roles, Presets & Partituras:
-  maestri role list | show "Name" | create "Name" "Prompt" [--scope current|global] | write "Name" "Prompt" | edit "Name" "old" "new" [--scope current|global] | assign "Agent" "Role"
-  maestri preset list | show "Name" | create "Name" --command "..." | set "Name" ... | delete "Name"
-  maestri partitura list | insert "Name" | create "Name" | delete "Name"
+  orkestrei role list | show "Name" | create "Name" "Prompt" [--scope current|global] | write "Name" "Prompt" | edit "Name" "old" "new" [--scope current|global] | assign "Agent" "Role"
+  orkestrei preset list | show "Name" | create "Name" --command "..." | set "Name" ... | delete "Name"
+  orkestrei partitura list | insert "Name" | create "Name" | delete "Name"
 
 Notes & Fichários:
-  maestri note create ["content"] [--name "Name"] [--stack ["Fichário"]] [--color C]
-  maestri note read "Name" [offset limit]
-  maestri note write "Name" "content"
-  maestri note edit "Name" "old" "new"
-  maestri note stack "Name" ["Fichário"] | unstack "Name" | delete "Name"
+  orkestrei note create ["content"] [--name "Name"] [--stack ["Fichário"]] [--color C]
+  orkestrei note read "Name" [offset limit]
+  orkestrei note write "Name" "content"
+  orkestrei note edit "Name" "old" "new"
+  orkestrei note stack "Name" ["Fichário"] | unstack "Name" | delete "Name"
 
 Floors & Workspaces:
-  maestri floor list | create "Name" [--branch B] [--existing-branch] [--no-git] [--copy-ground] | status ["Text"] [--state working|blocked|review|done] [--progress 2/5] [--floor F] [--clear] | land "Name" [--into B] [--delete-branch] [--keep-floor] | delete "Name"
-  maestri workspace list | create "Name" --dir PATH [--from W] [--group G] [--folder F] | rename "Old" "New"
+  orkestrei floor list | create "Name" [--branch B] [--existing-branch] [--no-git] [--copy-ground] | status ["Text"] [--state working|blocked|review|done] [--progress 2/5] [--floor F] [--clear] | land "Name" [--into B] [--delete-branch] [--keep-floor] | delete "Name"
+  orkestrei workspace list | create "Name" --dir PATH [--from W] [--group G] [--folder F] | rename "Old" "New"
 
 Portals, Routines & Chat:
-  maestri portal create URL ["Name"] [--size WxH]
-  maestri portal edit "Portal" --url URL | close "Portal"
-  maestri portal snapshot|click|fill|type|key|scroll|scrollintoview|navigate|back|forward|reload|info|screenshot|text|html|evaluate|logs-start|logs|resize|ua "Portal" ...
-  maestri routine list | show "Name" | create "Name" --command "..." (--every 30m | --daily 09:00 | --weekly mon@09:00 | --once "YYYY-MM-DD HH:mm") [--terminal T | --reminder] [--pre-run "..."] | enable|disable|run|delete "Name"
-  maestri say ['text' | --file path | --progress 'text']
-  maestri recall [thread] [--turns N]
-  maestri debug
+  orkestrei portal create URL ["Name"] [--size WxH]
+  orkestrei portal edit "Portal" --url URL | close "Portal"
+  orkestrei portal snapshot|click|fill|type|key|scroll|scrollintoview|navigate|back|forward|reload|info|screenshot|text|html|evaluate|logs-start|logs|resize|ua "Portal" ...
+  orkestrei routine list | show "Name" | create "Name" --command "..." (--every 30m | --daily 09:00 | --weekly mon@09:00 | --once "YYYY-MM-DD HH:mm") [--terminal T | --reminder] [--pre-run "..."] | enable|disable|run|delete "Name"
+  orkestrei say ['text' | --file path | --progress 'text']
+  orkestrei recall [thread] [--turns N]
+  orkestrei debug
 `);
 }
 
@@ -170,11 +172,11 @@ async function main() {
   }
 
   if (cmd === 'debug') {
-    process.stdout.write(`MAESTRI_PIPE=${pipeUrl || '(unset)'}\n`);
-    process.stdout.write(`MAESTRI_TERMINAL_ID=${terminalId || '(unset)'}\n`);
-    process.stdout.write(`MAESTRI_TOKEN=${authToken ? '(set)' : '(unset)'}\n`);
-    process.stdout.write(`MAESTRI_WORKSPACE_ID=${process.env.MAESTRI_WORKSPACE_ID || '(unset)'}\n`);
-    process.stdout.write(`MAESTRI_CLI=${process.env.MAESTRI_CLI || '(unset)'}\n`);
+    process.stdout.write(`ORKESTREI_PIPE=${pipeUrl || '(unset)'}\n`);
+    process.stdout.write(`ORKESTREI_TERMINAL_ID=${terminalId || '(unset)'}\n`);
+    process.stdout.write(`ORKESTREI_TOKEN=${authToken ? '(set)' : '(unset)'}\n`);
+    process.stdout.write(`ORKESTREI_WORKSPACE_ID=${process.env.ORKESTREI_WORKSPACE_ID || '(unset)'}\n`);
+    process.stdout.write(`ORKESTREI_CLI=${process.env.ORKESTREI_CLI || '(unset)'}\n`);
     if (pipeUrl && terminalId) {
       const r = await request('GET', '/health');
       process.stdout.write(`Health: ${r.status} ${r.body}\n`);
@@ -251,7 +253,7 @@ async function main() {
 
   if (cmd === 'check') {
     const name = positionals[0];
-    if (!name) fail('Usage: maestri check "Agent Name"');
+    if (!name) fail('Usage: orkestrei check "Agent Name"');
     const r = await request('GET', `/check?name=${encodeURIComponent(name)}`);
     if (r.status >= 400) fail(r.body);
     process.stdout.write(r.body + '\n');
@@ -275,7 +277,7 @@ async function main() {
     const target = positionals[0];
     const isRaw = flags.raw !== undefined;
     const prompt = typeof flags.raw === 'string' ? flags.raw : positionals.slice(1).join(' ');
-    if (!target) fail('Usage: maestri ask "Agent Name" "prompt"');
+    if (!target) fail('Usage: orkestrei ask "Agent Name" "prompt"');
     const timeoutMs = flags.timeout ? Number(flags.timeout) * 1000 : 60_000;
     const r = await request('POST', '/ask', { target, prompt, raw: isRaw, timeoutMs });
     if (r.status >= 400) fail(r.body);
@@ -291,8 +293,23 @@ async function main() {
   }
 
   if (cmd === 'connect') {
-    if (positionals.length < 2) fail('Usage: maestri connect "From" "To"');
+    if (positionals.length < 2) fail('Usage: orkestrei connect "From" "To"');
     const r = await request('POST', '/connect', { from: positionals[0], to: positionals[1] });
+    if (r.status >= 400) fail(r.body);
+    process.stdout.write(r.body + '\n');
+    return;
+  }
+
+  if (cmd === 'disconnect') {
+    if (flags.all) {
+      if (positionals.length < 1) fail('Usage: orkestrei disconnect "Name" --all');
+      const r = await request('POST', '/disconnect', { from: positionals[0], all: true });
+      if (r.status >= 400) fail(r.body);
+      process.stdout.write(r.body + '\n');
+      return;
+    }
+    if (positionals.length < 2) fail('Usage: orkestrei disconnect "From" "To" | orkestrei disconnect "Name" --all');
+    const r = await request('POST', '/disconnect', { from: positionals[0], to: positionals[1] });
     if (r.status >= 400) fail(r.body);
     process.stdout.write(r.body + '\n');
     return;
@@ -319,7 +336,7 @@ async function main() {
 
   if (cmd === 'dismiss') {
     const name = positionals[0];
-    if (!name) fail('Usage: maestri dismiss "Name"');
+    if (!name) fail('Usage: orkestrei dismiss "Name"');
     const r = await request('POST', '/team/dismiss', { name });
     if (r.status >= 400) fail(r.body);
     process.stdout.write(r.body + '\n');
@@ -341,7 +358,7 @@ async function main() {
   if (cmd === 'band') {
     const sub = positionals[0];
     const bandName = positionals[1];
-    if (!sub || !bandName) fail('Usage: maestri band create|add|remove|dissolve "Name" ...');
+    if (!sub || !bandName) fail('Usage: orkestrei band create|add|remove|dissolve "Name" ...');
     const r = await request('POST', '/team/band', {
       action: sub,
       name: bandName,
@@ -632,7 +649,7 @@ async function main() {
       return;
     }
     const portalName = positionals[1];
-    if (!portalName) fail('Usage: maestri portal <action> "Portal" ...');
+    if (!portalName) fail('Usage: orkestrei portal <action> "Portal" ...');
     const payload = {
       name: portalName,
       action: sub,
@@ -743,7 +760,7 @@ async function main() {
     return;
   }
 
-  fail(`Unknown command "${cmd}". Run "maestri help" for usage.`);
+  fail(`Unknown command "${cmd}". Run "orkestrei help" for usage.`);
 }
 
 main().catch((err) => {

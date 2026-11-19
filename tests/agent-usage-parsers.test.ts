@@ -97,7 +97,7 @@ describe('parseClaudeUsage', () => {
         type: 'control_response',
         response: {
           subtype: 'success',
-          request_id: 'maestri-usage',
+          request_id: 'orkestrei-usage',
           response: {
             subscription_type: 'max',
             rate_limits: {

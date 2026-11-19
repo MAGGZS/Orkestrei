@@ -62,9 +62,9 @@ export const BandNode: React.FC<{ node: CanvasNode }> = ({ node }) => {
         },
       },
     };
-    await window.maestri.node.create(workspace.id, memberNode);
-    await window.maestri.band.addTerminal(workspace.id, node.id, newNodeId);
-    await window.maestri.band.select(workspace.id, node.id, newNodeId);
+    await window.orkestrei.node.create(workspace.id, memberNode);
+    await window.orkestrei.band.addTerminal(workspace.id, node.id, newNodeId);
+    await window.orkestrei.band.select(workspace.id, node.id, newNodeId);
   };
 
   return (
@@ -99,7 +99,7 @@ export const BandNode: React.FC<{ node: CanvasNode }> = ({ node }) => {
               </button>
               <button
                 type="button"
-                onClick={() => void window.maestri.band.dissolve(workspace.id, node.id)}
+                onClick={() => void window.orkestrei.band.dissolve(workspace.id, node.id)}
                 className="rounded-md p-1 text-[var(--muted-foreground)] hover:bg-[var(--bg-hover)] hover:text-[var(--foreground)]"
                 title="Dissolve band"
               >
@@ -127,7 +127,7 @@ export const BandNode: React.FC<{ node: CanvasNode }> = ({ node }) => {
                   return (
                     <div
                       key={m.id}
-                      onClick={() => void window.maestri.band.select(workspace.id, node.id, m.id)}
+                      onClick={() => void window.orkestrei.band.select(workspace.id, node.id, m.id)}
                       className={`group/row flex cursor-pointer items-center justify-between rounded-md px-2 py-1.5 text-xs transition-colors ${
                         active
                           ? 'bg-[var(--sidebar-active)] text-[var(--foreground)]'
@@ -158,7 +158,7 @@ export const BandNode: React.FC<{ node: CanvasNode }> = ({ node }) => {
                         type="button"
                         onClick={(e) => {
                           e.stopPropagation();
-                          void window.maestri.band.removeMember(workspace.id, node.id, m.id);
+                          void window.orkestrei.band.removeMember(workspace.id, node.id, m.id);
                         }}
                         title="Remove from band"
                         className="hidden rounded p-0.5 text-[var(--muted-foreground)] hover:text-[var(--destructive)] group-hover/row:block"

@@ -316,7 +316,7 @@ export const TerminalContentBody: React.FC<{
           (lastSentGridRef.current.cols !== cols || lastSentGridRef.current.rows !== rows)
         ) {
           lastSentGridRef.current = { cols, rows };
-          void window.maestri.terminal.resize(terminal.id, cols, rows);
+          void window.orkestrei.terminal.resize(terminal.id, cols, rows);
         }
       } catch {
         // ignore layout race
@@ -324,20 +324,20 @@ export const TerminalContentBody: React.FC<{
     };
     syncFitRef.current = syncFit;
 
-    const unsubData = window.maestri.terminal.onData((ev) => {
+    const unsubData = window.orkestrei.terminal.onData((ev) => {
       if (!cancelled && ev.terminalId === terminal.id) {
         term.write(ev.data);
       }
     });
 
     const inputDisposable = term.onData((data) => {
-      window.maestri.terminal.write(terminal.id, data);
+      window.orkestrei.terminal.write(terminal.id, data);
     });
 
     const bootTerminal = async () => {
       if (cancelled) return;
       syncFit(true);
-      await window.maestri.terminal.spawn({
+      await window.orkestrei.terminal.spawn({
         workspaceId,
         terminalId: terminal.id,
         cols: term.cols,
@@ -347,7 +347,7 @@ export const TerminalContentBody: React.FC<{
       spawned = true;
       lastSentGridRef.current = { cols: term.cols, rows: term.rows };
 
-      const scrollback = await window.maestri.terminal.getScrollback(terminal.id);
+      const scrollback = await window.orkestrei.terminal.getScrollback(terminal.id);
       if (cancelled) return;
       if (scrollback) {
         term.write(scrollback, () => {
@@ -424,10 +424,10 @@ export const TerminalContentBody: React.FC<{
   // Chat state sync
   useEffect(() => {
     if (!terminal.inChatMode) return;
-    void window.maestri.chat.getState(terminal.id).then(setChatState);
-    const unsub = window.maestri.chat.onEvent((ev) => {
+    void window.orkestrei.chat.getState(terminal.id).then(setChatState);
+    const unsub = window.orkestrei.chat.onEvent((ev) => {
       if (ev.terminalId === terminal.id) {
-        void window.maestri.chat.getState(terminal.id).then(setChatState);
+        void window.orkestrei.chat.getState(terminal.id).then(setChatState);
       }
     });
     return unsub;
@@ -465,10 +465,10 @@ export const TerminalContentBody: React.FC<{
 
     if (terminal.inChatMode) {
       const slot = chatState?.activeSlot ?? 'blue';
-      await window.maestri.chat.send(terminal.id, slot, text);
+      await window.orkestrei.chat.send(terminal.id, slot, text);
       return true;
     }
-    const delivered = await window.maestri.terminal.deliverPrompt(terminal.id, text);
+    const delivered = await window.orkestrei.terminal.deliverPrompt(terminal.id, text);
     if (!delivered) {
       toast.error('Terminal is not running');
     }
@@ -480,8 +480,8 @@ export const TerminalContentBody: React.FC<{
     setShowInspector(next);
     if (next) {
       const [info, p] = await Promise.all([
-        window.maestri.terminal.inspect(terminal.id),
-        window.maestri.interAgent.listPeers(workspaceId, terminal.id),
+        window.orkestrei.terminal.inspect(terminal.id),
+        window.orkestrei.interAgent.listPeers(workspaceId, terminal.id),
       ]);
       setInspectInfo(info);
       setPeers(p);
@@ -499,7 +499,7 @@ export const TerminalContentBody: React.FC<{
       ref={nodeContainerRef}
       className="flex h-full w-full flex-col overflow-hidden rounded-lg bg-[#141519]"
     >
-      {/* Header (28px Maestri rail) */}
+      {/* Header (28px Orkestrei rail) */}
       {!hideHeader && (
         <div
           onPointerDown={startDrag}
@@ -535,7 +535,7 @@ export const TerminalContentBody: React.FC<{
                 onBlur={() => {
                   setEditingName(false);
                   if (draftName.trim() && draftName !== terminal.name) {
-                    void window.maestri.terminal.updateData(workspaceId, terminal.id, {
+                    void window.orkestrei.terminal.updateData(workspaceId, terminal.id, {
                       name: draftName.trim(),
                     });
                   }
@@ -682,7 +682,7 @@ export const TerminalContentBody: React.FC<{
                   type="button"
                   onClick={() => {
                     setShowRoleMenu(false);
-                    void window.maestri.terminal.updateData(workspaceId, terminal.id, {
+                    void window.orkestrei.terminal.updateData(workspaceId, terminal.id, {
                       roleId: null,
                       roleName: null,
                     });
@@ -697,7 +697,7 @@ export const TerminalContentBody: React.FC<{
                     type="button"
                     onClick={() => {
                       setShowRoleMenu(false);
-                      void window.maestri.terminal.updateData(workspaceId, terminal.id, {
+                      void window.orkestrei.terminal.updateData(workspaceId, terminal.id, {
                         roleId: r.id,
                         roleName: r.name,
                       });
@@ -714,7 +714,7 @@ export const TerminalContentBody: React.FC<{
             <button
               type="button"
               onClick={() =>
-                void window.maestri.terminal.updateData(workspaceId, terminal.id, {
+                void window.orkestrei.terminal.updateData(workspaceId, terminal.id, {
                   isManager: !terminal.isManager,
                 })
               }
@@ -732,7 +732,7 @@ export const TerminalContentBody: React.FC<{
             <button
               type="button"
               onClick={() =>
-                void window.maestri.terminal.updateData(workspaceId, terminal.id, {
+                void window.orkestrei.terminal.updateData(workspaceId, terminal.id, {
                   inChatMode: !terminal.inChatMode,
                 })
               }
@@ -823,7 +823,7 @@ export const TerminalContentBody: React.FC<{
                     </div>
                   </div>
                   <div>
-                    <div className="opacity-75">MAESTRI_PIPE:</div>
+                    <div className="opacity-75">ORKESTREI_PIPE:</div>
                     <div className="truncate font-mono text-[10px] text-[var(--foreground)]">
                       {inspectInfo?.pipeEnv || '—'}
                     </div>
@@ -857,7 +857,7 @@ export const TerminalContentBody: React.FC<{
                   <button
                     type="button"
                     onClick={() => {
-                      void window.maestri.connection.removeAllFor(workspaceId, nodeId);
+                      void window.orkestrei.connection.removeAllFor(workspaceId, nodeId);
                       setShowInspector(false);
                     }}
                     className="text-[10px] text-[var(--destructive)] hover:underline"
@@ -889,7 +889,7 @@ export const TerminalContentBody: React.FC<{
                           <span className="truncate">{peerLabel}</span>
                           <button
                             type="button"
-                            onClick={() => void window.maestri.connection.delete(workspaceId, c.id)}
+                            onClick={() => void window.orkestrei.connection.delete(workspaceId, c.id)}
                             title="Disconnect"
                             className="text-[var(--muted-foreground)] hover:text-[var(--destructive)]"
                           >
@@ -916,7 +916,7 @@ export const TerminalContentBody: React.FC<{
                           <span className="truncate text-[var(--muted-foreground)]">Note: {label}</span>
                           <button
                             type="button"
-                            onClick={() => void window.maestri.connection.delete(workspaceId, c.id)}
+                            onClick={() => void window.orkestrei.connection.delete(workspaceId, c.id)}
                             title="Disconnect"
                             className="text-[var(--muted-foreground)] hover:text-[var(--destructive)]"
                           >
@@ -934,7 +934,7 @@ export const TerminalContentBody: React.FC<{
 
             <button
               type="button"
-              onClick={() => void window.maestri.terminal.restart(workspaceId, terminal.id)}
+              onClick={() => void window.orkestrei.terminal.restart(workspaceId, terminal.id)}
               title="Restart"
               className="flex size-5 items-center justify-center rounded text-[var(--muted-foreground)] transition-colors hover:bg-[var(--bg-hover)] hover:text-[var(--foreground)]"
             >
@@ -954,7 +954,7 @@ export const TerminalContentBody: React.FC<{
 
             <button
               type="button"
-              onClick={() => void window.maestri.node.deleteMany(workspaceId, [nodeId])}
+              onClick={() => void window.orkestrei.node.deleteMany(workspaceId, [nodeId])}
               title="Close"
               className="flex size-5 items-center justify-center rounded text-[var(--muted-foreground)] transition-colors hover:bg-[var(--bg-hover)] hover:text-[var(--destructive)]"
             >
@@ -1024,7 +1024,7 @@ export const TerminalContentBody: React.FC<{
                       key={tc.key}
                       type="button"
                       onClick={() =>
-                        void window.maestri.chat
+                        void window.orkestrei.chat
                           .switchThread(terminal.id, tc.key as ChatThreadColor)
                           .then(setChatState)
                       }
@@ -1045,9 +1045,9 @@ export const TerminalContentBody: React.FC<{
               <button
                 type="button"
                 onClick={() =>
-                  void window.maestri.chat
+                  void window.orkestrei.chat
                     .clearThread(terminal.id, chatState.activeSlot)
-                    .then(() => window.maestri.chat.getState(terminal.id).then(setChatState))
+                    .then(() => window.orkestrei.chat.getState(terminal.id).then(setChatState))
                 }
                 className="text-[10px] text-[var(--muted-foreground)] hover:text-[var(--destructive)]"
               >
@@ -1060,11 +1060,11 @@ export const TerminalContentBody: React.FC<{
                 <div className="flex h-full items-center justify-center text-center text-[var(--muted-foreground)]">
                   <div>
                     <p className="font-medium text-[var(--foreground)]">
-                      Maestri Chat ({chatState.activeSlot} thread)
+                      Orkestrei Chat ({chatState.activeSlot} thread)
                     </p>
                     <p className="mt-1 text-[11px]">
-                      Messages sent here carry the Maestri Chat header so agents reply with{' '}
-                      <code>maestri say</code>.
+                      Messages sent here carry the Orkestrei Chat header so agents reply with{' '}
+                      <code>orkestrei say</code>.
                     </p>
                   </div>
                 </div>

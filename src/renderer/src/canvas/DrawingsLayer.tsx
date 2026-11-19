@@ -118,7 +118,7 @@ export const DrawingsLayer: React.FC<Props> = ({ previewDrawing }) => {
       {level.drawings.map((d) =>
         renderShape(d, () => {
           if (workspace && (mode === 'select' || mode === 'draw')) {
-            void window.maestri.drawing.delete(workspace.id, d.id);
+            void window.orkestrei.drawing.delete(workspace.id, d.id);
           }
         })
       )}

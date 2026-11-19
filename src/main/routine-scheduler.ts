@@ -275,7 +275,7 @@ export class RoutineScheduler {
         const env = {
           ...process.env,
           ...this.deps.getWorkspaceEnv(routine.workspaceId, routine.targetTerminalId),
-          MAESTRI_ROUTINE_NAME: routine.name,
+          ORKESTREI_ROUTINE_NAME: routine.name,
         };
         const { stdout } = await execAsync(routine.preRunScript, { env, timeout: 30_000 });
         commandText = commandText.replace(/\{\{output\}\}/g, stdout.trim());

@@ -46,7 +46,7 @@ export const PortalNode: React.FC<{ node: CanvasNode }> = ({ node }) => {
     const handleDomReady = () => {
       try {
         const wcId = wv.getWebContentsId();
-        void window.maestri.portal.register(portal.id, wcId);
+        void window.orkestrei.portal.register(portal.id, wcId);
       } catch {
         // ignore if not ready
       }
@@ -63,7 +63,7 @@ export const PortalNode: React.FC<{ node: CanvasNode }> = ({ node }) => {
     return () => {
       wv.removeEventListener('dom-ready', handleDomReady);
       wv.removeEventListener('did-navigate', handleDidNavigate);
-      void window.maestri.portal.unregister(portal.id);
+      void window.orkestrei.portal.unregister(portal.id);
     };
   }, [portal?.id]);
 
@@ -78,7 +78,7 @@ export const PortalNode: React.FC<{ node: CanvasNode }> = ({ node }) => {
         : `https://${target}`;
     }
     setUrlInput(target);
-    void window.maestri.node.patch(workspace.id, node.id, {
+    void window.orkestrei.node.patch(workspace.id, node.id, {
       content: { kind: 'portal', portal: { ...portal, url: target } },
     });
     webviewRef.current?.loadURL(target);
@@ -86,7 +86,7 @@ export const PortalNode: React.FC<{ node: CanvasNode }> = ({ node }) => {
 
   const setViewport = (w: number, h: number, uaPreset: string) => {
     setShowDeviceMenu(false);
-    void window.maestri.node.patch(workspace.id, node.id, {
+    void window.orkestrei.node.patch(workspace.id, node.id, {
       frame: { ...node.frame, width: w, height: h + 52 },
       content: {
         kind: 'portal',
@@ -200,7 +200,7 @@ export const PortalNode: React.FC<{ node: CanvasNode }> = ({ node }) => {
               </button>
               <button
                 type="button"
-                onClick={() => void window.maestri.node.deleteMany(workspace.id, [node.id])}
+                onClick={() => void window.orkestrei.node.deleteMany(workspace.id, [node.id])}
                 className="rounded p-1 text-[var(--muted-foreground)] hover:bg-[var(--destructive)]/20 hover:text-[var(--destructive)]"
               >
                 <Trash2 className="size-3.5" />

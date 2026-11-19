@@ -90,7 +90,7 @@ export const NodeFrame: React.FC<NodeFrameProps> = ({
     if (!workspace) return;
     if (connectingFrom && connectingFrom !== node.id) {
       e.stopPropagation();
-      void window.maestri.connection.connectNodes(workspace.id, connectingFrom, node.id);
+      void window.orkestrei.connection.connectNodes(workspace.id, connectingFrom, node.id);
       setConnectingFrom(null);
       setConnectingCursor(null);
       return true;
@@ -105,7 +105,7 @@ export const NodeFrame: React.FC<NodeFrameProps> = ({
       if (!connectingFrom) {
         setConnectingFrom(node.id);
       } else if (connectingFrom !== node.id && workspace) {
-        void window.maestri.connection.connectNodes(workspace.id, connectingFrom, node.id);
+        void window.orkestrei.connection.connectNodes(workspace.id, connectingFrom, node.id);
         setConnectingFrom(null);
         setConnectingCursor(null);
       } else {
@@ -226,7 +226,7 @@ export const NodeFrame: React.FC<NodeFrameProps> = ({
           return next;
         });
         if (patches.length > 0) {
-          void window.maestri.node.patchFrames(workspace.id, patches);
+          void window.orkestrei.node.patchFrames(workspace.id, patches);
         }
       }
     };
@@ -289,7 +289,7 @@ export const NodeFrame: React.FC<NodeFrameProps> = ({
         return next;
       });
       if (finalFrame) {
-        void window.maestri.node.patchFrames(workspace.id, [{ nodeId: node.id, frame: finalFrame }]);
+        void window.orkestrei.node.patchFrames(workspace.id, [{ nodeId: node.id, frame: finalFrame }]);
       }
     };
 
@@ -319,7 +319,7 @@ export const NodeFrame: React.FC<NodeFrameProps> = ({
       const targetNodeEl = targetEl?.closest('[data-canvas-node-id]') as HTMLElement | null;
       const targetId = targetNodeEl?.dataset.canvasNodeId;
       if (targetId && targetId !== node.id) {
-        void window.maestri.connection.connectNodes(workspace.id, node.id, targetId);
+        void window.orkestrei.connection.connectNodes(workspace.id, node.id, targetId);
       }
       setConnectingFrom(null);
       setConnectingCursor(null);
@@ -417,7 +417,7 @@ export const NodeFrame: React.FC<NodeFrameProps> = ({
           <button
             type="button"
             onClick={() => {
-              if (workspace) void window.maestri.node.setRedacted(workspace.id, node.id, false);
+              if (workspace) void window.orkestrei.node.setRedacted(workspace.id, node.id, false);
             }}
             className="flex items-center gap-1.5 rounded-lg border border-[var(--border)] bg-[var(--card)] px-3 py-1 text-[11px] font-medium text-[var(--foreground)] hover:bg-[var(--bg-hover)]"
           >
